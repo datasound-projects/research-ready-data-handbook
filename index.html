@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Research-Ready Data Handbook — Financial Time-Series Validation &amp; Conditioning</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/base16/black-metal.min.css">
+<style>
+:root{
+  --paper:#EFF3EE; --card:#F8FAF6; --ink:#15211B; --muted:#5D6C62; --line:#D8E1D6;
+  --line-soft:#E3EAE0; --accent:#0B6B4F; --accent-deep:#07523C; --accent-soft:#DCEAE2;
+  --sell:#A93F35; --sell-soft:#F3E2DF; --warn:#B27417; --warn-soft:#F4EAD6;
+  --code-bg:#0D1512; --code-line:#1C2A22; --code-text:#D9E5DE; --code-dim:#7E948A;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --serif:'Newsreader',Georgia,serif; --sans:'Public Sans',system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto} *{transition:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);
+  font-size:16.5px;line-height:1.66;-webkit-font-smoothing:antialiased}
+a{color:var(--accent-deep)}
+.layout{display:grid;grid-template-columns:288px minmax(0,1fr);min-height:100vh}
+/* ---- rail ---- */
+.rail{position:sticky;top:0;height:100vh;overflow-y:auto;border-right:1px solid var(--line);
+  background:linear-gradient(180deg,#F3F7F1, #ECF1EA);padding:26px 20px 40px}
+.rail::-webkit-scrollbar{width:0}
+.brand{font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:var(--accent-deep);
+  text-transform:uppercase;margin-bottom:6px}
+.brand b{display:block;font-family:var(--serif);font-size:21px;letter-spacing:0;
+  text-transform:none;font-weight:600;color:var(--ink);margin-top:6px;line-height:1.2}
+.rail .tagline{font-size:12.5px;color:var(--muted);margin:10px 0 22px;line-height:1.5}
+.nav-part{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--muted);
+  text-transform:uppercase;margin:20px 0 6px;padding-left:8px}
+.nav a{display:flex;gap:10px;align-items:baseline;text-decoration:none;color:var(--ink);
+  font-size:13.5px;padding:6px 8px;border-radius:7px;line-height:1.35}
+.nav a .n{font-family:var(--mono);font-size:11px;color:var(--muted);min-width:20px}
+.nav a:hover{background:#E4ECE2}
+.nav a.active{background:var(--accent);color:#F4FAF6}
+.nav a.active .n{color:#BFDCCE}
+/* ---- content ---- */
+.content{padding:0 56px 120px;max-width:900px}
+@media(max-width:980px){.layout{display:block}.rail{position:static;height:auto;border-right:0;
+  border-bottom:1px solid var(--line)}.content{padding:0 20px 90px}}
+/* hero */
+.hero{padding:74px 0 30px;border-bottom:1px solid var(--line)}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--accent-deep);margin-bottom:18px}
+h1.title{font-family:var(--serif);font-weight:500;font-size:clamp(38px,5.4vw,58px);
+  line-height:1.04;margin:0 0 18px;letter-spacing:-.01em}
+.hero .lede{font-size:19px;color:#33413A;max-width:44em;line-height:1.6}
+.goal{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:30px 0 8px;
+  font-family:var(--mono);font-size:12.5px;letter-spacing:.02em}
+.goal .term{background:var(--card);border:1px solid var(--line);padding:9px 13px;border-radius:8px}
+.goal .op{color:var(--muted)}
+.goal .eq{background:var(--accent);color:#F1F8F3;border-color:var(--accent);padding:9px 13px;border-radius:8px}
+.stamp{display:inline-block;margin-top:26px;font-family:var(--mono);font-size:11px;letter-spacing:.22em;
+  color:var(--accent-deep);border:2px solid var(--accent-deep);border-radius:6px;padding:7px 14px;
+  transform:rotate(-2deg);opacity:.85}
+/* chapters */
+.chapter{padding-top:64px}
+.chapter-head{border-top:3px solid var(--ink);padding-top:14px;margin-bottom:26px;position:relative}
+.chapter-head .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--accent-deep)}
+.chapter-head h2{font-family:var(--serif);font-weight:500;font-size:clamp(28px,3.4vw,38px);
+  margin:8px 0 8px;line-height:1.12;letter-spacing:-.005em}
+.chapter-head .sub{color:var(--muted);font-size:16px;max-width:42em}
+.chapter-head .big-n{position:absolute;right:0;top:6px;font-family:var(--serif);
+  font-size:64px;color:#D3DECF;font-weight:500;line-height:1}
+h3{font-family:var(--sans);font-weight:700;font-size:17.5px;margin:38px 0 10px;letter-spacing:.005em}
+h3 .step{font-family:var(--mono);font-weight:500;font-size:12px;color:var(--accent-deep);margin-right:8px}
+p{margin:0 0 14px;max-width:46em}
+ul,ol{max-width:44em}
+li{margin-bottom:6px}
+strong{font-weight:650}
+code:not(pre code){font-family:var(--mono);font-size:.86em;background:#E4EBE2;
+  border:1px solid var(--line);border-radius:5px;padding:1px 5px;white-space:nowrap}
+/* code figure */
+figure.code{margin:20px 0 24px;border-radius:11px;overflow:hidden;background:var(--code-bg);
+  border:1px solid #223229}
+figure.code figcaption{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--code-dim);padding:9px 16px;border-bottom:1px solid var(--code-line);
+  display:flex;align-items:center;gap:9px}
+figure.code .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block}
+figure.code pre{margin:0;padding:16px 18px;overflow-x:auto}
+figure.code code{font-family:var(--mono);font-size:13px;line-height:1.62;color:var(--code-text);background:transparent}
+pre code.hljs{background:transparent;padding:0}
+/* callouts */
+.callout{display:flex;gap:14px;margin:22px 0;padding:15px 17px;border-radius:10px;
+  background:var(--card);border:1px solid var(--line);max-width:48em}
+.callout .callout-tag{font-family:var(--mono);font-size:10px;letter-spacing:.16em;
+  text-transform:uppercase;padding-top:3px;white-space:nowrap}
+.callout.principle{border-left:4px solid var(--accent)} .callout.principle .callout-tag{color:var(--accent-deep)}
+.callout.warn{border-left:4px solid var(--warn);background:var(--warn-soft)} .callout.warn .callout-tag{color:var(--warn)}
+.callout.danger{border-left:4px solid var(--sell);background:var(--sell-soft)} .callout.danger .callout-tag{color:var(--sell)}
+.callout.note{border-left:4px solid #8AA394} .callout.note .callout-tag{color:var(--muted)}
+.callout .callout-body{font-size:14.5px;line-height:1.6}
+/* do/dont */
+.dodont{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:22px 0;max-width:50em}
+@media(max-width:720px){.dodont{grid-template-columns:1fr}}
+.dd{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-size:14.5px}
+.dd .dd-tag{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px}
+.dd.do{border-top:3px solid var(--accent)} .dd.do .dd-tag{color:var(--accent-deep)}
+.dd.dont{border-top:3px solid var(--sell)} .dd.dont .dd-tag{color:var(--sell)}
+.dd p{margin:6px 0 0;color:#33413A;font-size:14px}
+/* checklists */
+.checklist,.watchout{margin:26px 0;background:var(--card);border:1px solid var(--line);
+  border-radius:10px;padding:16px 18px;max-width:48em}
+.watchout{border-left:4px solid var(--warn)}
+.checklist{border-left:4px solid var(--accent)}
+.check-title{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:10px}
+.checklist ul,.watchout ul{list-style:none;margin:0;padding:0}
+.checklist li,.watchout li{padding-left:26px;position:relative;font-size:14.5px;margin-bottom:8px}
+.checklist li::before{content:"▢";position:absolute;left:0;color:var(--accent-deep);font-size:15px}
+.watchout li::before{content:"!";position:absolute;left:4px;color:var(--warn);
+  font-family:var(--mono);font-weight:700}
+/* tables */
+.tablewrap{overflow-x:auto;margin:20px 0 26px}
+table{border-collapse:collapse;width:100%;font-size:14px;background:var(--card);
+  border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  text-align:left;color:var(--muted);background:#E9EFE6;padding:10px 13px;border-bottom:1px solid var(--line)}
+td{padding:10px 13px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:600}
+/* pipeline diagram */
+.pipeline{margin:30px 0;max-width:34em}
+.pipe-step{display:flex;gap:16px;position:relative;padding-bottom:22px}
+.pipe-step::before{content:"";position:absolute;left:17px;top:36px;bottom:0;width:2px;background:var(--line)}
+.pipe-step:last-child::before{display:none}
+.pipe-n{flex:0 0 36px;height:36px;border-radius:50%;background:var(--card);border:2px solid var(--accent);
+  color:var(--accent-deep);font-family:var(--mono);font-size:12px;display:flex;align-items:center;
+  justify-content:center;z-index:1}
+.pipe-step.gate .pipe-n{background:var(--accent);color:#F1F8F3}
+.pipe-body strong{display:block;font-size:15px}
+.pipe-body span{font-size:13px;color:var(--muted)}
+.pipe-raw{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:14px}
+/* misc */
+.divider{border:0;border-top:1px solid var(--line);margin:0}
+.footer{margin-top:80px;padding-top:24px;border-top:1px solid var(--line);color:var(--muted);
+  font-size:13px;font-family:var(--mono)}
+.ref{font-size:13.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside class="rail">
+    <div class="brand">Quant data desk<b>The Research&#8209;Ready Data Handbook</b></div>
+    <div class="tagline">Validation &amp; conditioning of financial time series &mdash; the complete pipeline before any model.</div>
+    <nav class="nav"><div class="nav-part">Foundations</div><a href="#ch0"><span class="n">00</span><span>Raw data is not research data</span></a><div class="nav-part">Validate</div><a href="#ch1"><span class="n">01</span><span>Data ingestion &amp; raw data validation</span></a><a href="#ch2"><span class="n">02</span><span>Know what financial time series are</span></a><div class="nav-part">Diagnose</div><a href="#ch3"><span class="n">03</span><span>Missing data: the full taxonomy</span></a><a href="#ch4"><span class="n">04</span><span>Classify before you impute</span></a><div class="nav-part">Repair</div><a href="#ch5"><span class="n">05</span><span>Imputation methods and when to use them</span></a><a href="#ch6"><span class="n">06</span><span>Diffusion-style generative reconstruction</span></a><a href="#ch7"><span class="n">07</span><span>Outliers vs. contaminants</span></a><div class="nav-part">Assemble</div><a href="#ch8"><span class="n">08</span><span>Temporal boundary problems</span></a><a href="#ch9"><span class="n">09</span><span>Feature engineering validity checks</span></a><a href="#ch10"><span class="n">10</span><span>Look-ahead bias prevention</span></a><a href="#ch11"><span class="n">11</span><span>Label generation & validation</span></a><div class="nav-part">Approve</div><a href="#ch12"><span class="n">12</span><span>Regime & distribution checks</span></a><a href="#ch13"><span class="n">13</span><span>The complete conditioning pipeline</span></a><a href="#appendix"><span class="n">A</span><span>Appendix: the master checklist</span></a></nav>
+  </aside>
+  <main class="content">
+    
+<section class="hero" id="top">
+  <div class="eyebrow">Internal research standard &middot; Quant data engineering desk</div>
+  <h1 class="title">The Research&#8209;Ready Data Handbook</h1>
+  <p class="lede">The complete, chronological procedure for validating, diagnosing, repairing and
+  approving financial time&#8209;series data <em>before</em> any feature engineering, transformation,
+  machine&#8209;learning model, deep&#8209;learning model, symbolic regression or alpha discovery touches it.
+  Written the way production research desks actually work: every step categorized, every step with code,
+  every decision logged.</p>
+  <div class="goal">
+    <span class="term">Financial validity</span><span class="op">+</span>
+    <span class="term">Statistical correctness</span><span class="op">+</span>
+    <span class="term">Preservation of alpha information</span><span class="op">=</span>
+    <span class="eq">Research&#8209;ready data</span>
+  </div>
+  <div class="stamp">Dataset status: pending approval</div>
+</section>
+
+<section class="chapter" id="ch0">
+  <div class="chapter-head">
+    <div class="kicker">Foundations &middot; Read first</div>
+    <h2>Raw data is not research data</h2>
+    <div class="sub">The philosophy that governs every step in this handbook.</div>
+    <div class="big-n">00</div>
+  </div>
+
+  <p>Every dataset that arrives from an exchange, a broker, a vendor or an internal capture system is
+  <strong>raw</strong>. Raw means: unverified timestamps, unverified units, unknown gaps, unknown bad ticks,
+  unadjusted corporate actions, unexamined boundaries, and a distribution nobody has looked at. Feeding raw
+  data into a model does not produce research &mdash; it produces confident numbers about a dataset that does
+  not describe the market.</p>
+
+  <p>Professional desks therefore run every dataset through a <strong>Financial Data Validation &amp;
+  Conditioning Pipeline</strong> before research begins. The purpose of that pipeline is frequently
+  misunderstood, so state it precisely:</p>
+
+  <aside class="callout principle"><div class="callout-tag">Principle</div><div class="callout-body"><strong>The goal is not to make the data look clean.</strong> The goal is to make the data <em>economically meaningful and statistically usable</em>. A dataset scrubbed of every unusual value is a dataset scrubbed of every crash, squeeze, liquidation cascade and regime break &mdash; which is exactly where risk lives and where alpha is paid. You are <strong>conditioning</strong> data, not beautifying it.</div></aside>
+
+  <p>Three consequences of that principle run through the whole handbook:</p>
+  <ul>
+    <li><strong>Diagnose before you touch.</strong> Detection, classification and repair are separate steps with separate outputs. Nothing is deleted or filled until it has been classified.</li>
+    <li><strong>Extreme is not the same as wrong.</strong> A &plus;20% move can be a liquidation cascade (keep it, model it) or a decimal error (repair it). The value alone cannot tell you which. Context can.</li>
+    <li><strong>Every repair is logged.</strong> Raw data is kept immutable. Repairs, imputations and masks live in a separate layer with method, timestamp and uncertainty attached, so any result can be traced back and any repair can be reversed.</li>
+  </ul>
+
+  <h3>How to use this handbook</h3>
+  <p>The thirteen chapters are in <strong>chronological pipeline order</strong>. Follow them top to bottom for
+  every new dataset and you will not skip a failure mode. Each chapter ends with a &ldquo;things that actually
+  go wrong&rdquo; list and a stage checklist &mdash; the checklists concatenated are the dataset approval form
+  in Chapter&nbsp;13. Every step ships with a Python snippet; the companion package
+  <code>ResearchReadyPy</code> implements the entire pipeline 1:1 and produces the visual conditioning report.</p>
+</section>
+
+    
+<section class="chapter" id="ch1">
+  <div class="chapter-head">
+    <div class="kicker">Validate &middot; Chapter 01</div>
+    <h2>Data ingestion &amp; raw data validation</h2>
+    <div class="sub">Interrogate the file before you interrogate the market. Nothing is trusted, everything is checked, nothing is deleted.</div>
+    <div class="big-n">01</div>
+  </div>
+  
+<p>Before you compute a single return, interrogate the file itself. Ingestion validation is boring,
+mechanical, and catches more real-world research failures than any statistical technique in this book.
+Desks automate all of it and refuse the file if it fails.</p>
+<h3><span class="step">1.1</span>Source &amp; vendor validation</h3>
+<p>Know exactly where each field comes from and how it was produced. The questions to answer, once per
+source, in writing:</p>
+<ul>
+<li><strong>Origin:</strong> exchange direct feed, consolidated tape, vendor aggregation, or someone&rsquo;s scrape? Aggregated crypto prices (an &ldquo;index&rdquo; across venues) behave differently from single-venue prices &mdash; they are smoother and can hide venue-specific dislocations.</li>
+<li><strong>Point-in-time or backfilled?</strong> Many vendors silently restate history (fix bad ticks, restate fundamentals, add delisted names). If the file you download today differs from what you would have seen live, your backtest sees a cleaner world than the strategy ever will. Prefer point-in-time snapshots; if unavailable, record the download date and treat history as potentially revised.</li>
+<li><strong>Survivorship:</strong> does the universe include delisted, bankrupt, merged and renamed instruments? A universe of today&rsquo;s survivors overstates historical returns and understates risk. This is one of the largest silent biases in equity research.</li>
+<li><strong>Reliability record:</strong> keep a per-source incident log (outages, bad prints, revisions). Cross-check a sample of rows against a second independent source before trusting a new vendor.</li>
+</ul>
+<h3><span class="step">1.2</span>Schema and data-type validation</h3><p>Lock the expected schema in code and validate every delivery against it. Silent dtype
+changes (prices arriving as strings, volume as int32 that overflows, timestamps as epoch-milliseconds one
+day and epoch-seconds the next) are classic vendor incidents.</p><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">import pandas as pd
+
+EXPECTED = {
+    &quot;timestamp&quot;: &quot;datetime64[ns, UTC]&quot;,
+    &quot;open&quot;: &quot;float64&quot;, &quot;high&quot;: &quot;float64&quot;,
+    &quot;low&quot;: &quot;float64&quot;,  &quot;close&quot;: &quot;float64&quot;,
+    &quot;volume&quot;: &quot;float64&quot;,
+}
+
+def validate_schema(df: pd.DataFrame) -&gt; list[str]:
+    problems = []
+    missing = set(EXPECTED) - set(df.columns)
+    extra   = set(df.columns) - set(EXPECTED)
+    if missing:
+        problems.append(f&quot;missing columns: {sorted(missing)}&quot;)
+    if extra:
+        problems.append(f&quot;unexpected columns: {sorted(extra)}&quot;)  # investigate, don&#x27;t silently drop
+    for col in set(EXPECTED) &amp; set(df.columns):
+        if str(df[col].dtype) != EXPECTED[col]:
+            problems.append(f&quot;{col}: expected {EXPECTED[col]}, got {df[col].dtype}&quot;)
+    return problems   # empty list = pass; anything else = reject the delivery</code></pre></figure><h3><span class="step">1.3</span>Timestamp validation and timezone normalization</h3>
+<p>Timestamps are the spine of a time series; every later step assumes they are right. The standing rule on
+every desk: <strong>store everything in UTC, tz-aware, at ingestion</strong>. Convert to exchange-local time
+only when you need session logic (opens, closes, auctions), and do the conversion with a proper timezone
+database, never a fixed offset &mdash; daylight-saving transitions are where fixed offsets die. Also pin down
+the bar-timestamp convention: does <code>09:30</code> label the bar&rsquo;s <em>open</em> or its
+<em>close</em>? Mixing conventions across sources shifts every feature by one bar.</p>
+<figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">import pandas as pd
+
+def validate_timestamps(df: pd.DataFrame, ts_col: str = &quot;timestamp&quot;) -&gt; dict:
+    ts = pd.to_datetime(df[ts_col], utc=True, errors=&quot;coerce&quot;)  # normalize to UTC once
+    report = {
+        &quot;unparseable&quot;:   int(ts.isna().sum()),
+        &quot;duplicates&quot;:    int(ts.duplicated().sum()),
+        &quot;out_of_order&quot;:  int((ts.diff().dt.total_seconds() &lt; 0).sum()),
+        &quot;in_the_future&quot;: int((ts &gt; pd.Timestamp.now(tz=&quot;UTC&quot;)).sum()),
+    }
+    return report   # every entry should be 0 before you continue</code></pre></figure><aside class="callout warn"><div class="callout-tag">Watch out</div><div class="callout-body"><strong>Epoch-unit confusion is a real incident class.</strong> 1_700_000_000 is November 2023 in seconds and January 1970 in milliseconds. If dates cluster in 1970 or in the year 55978, the vendor changed epoch units mid-file. Detect by checking the magnitude of raw integer timestamps before parsing.</div></aside><h3><span class="step">1.4</span>Duplicate detection</h3><p>Two different problems hide under &ldquo;duplicates&rdquo;: exact duplicated rows
+(harmless to drop, but log how many), and <strong>conflicting duplicates</strong> &mdash; the same timestamp
+with different prices. The second kind means two feeds were merged or a correction was appended; it needs a
+resolution rule (keep last correction, keep primary source), not a blind <code>drop_duplicates()</code>.</p><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">exact_dupes  = int(df.duplicated().sum())                       # identical rows
+conflicting  = (df.groupby(&quot;timestamp&quot;)[&quot;close&quot;]
+                  .nunique().gt(1))                             # same time, different price
+n_conflicts  = int(conflicting.sum())
+conflict_ts  = conflicting[conflicting].index                    # inspect these by hand</code></pre></figure><h3><span class="step">1.5</span>Missing records vs. missing values (calendar-aware)</h3><p>A <em>missing value</em> is a NaN in a row you have. A <em>missing record</em> is a row that
+should exist and does not &mdash; and you can only see it against the correct trading calendar. Crypto trades
+on a true 24/7 grid; equities trade in exchange sessions with holidays and half-days. Checking an equity
+series against a naive daily grid &ldquo;finds&rdquo; thousands of fake gaps (weekends); checking crypto
+against a business-day calendar hides real ones.</p><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">import pandas as pd
+
+def missing_bars(index: pd.DatetimeIndex, freq: str = &quot;1D&quot;,
+                 sessions: pd.DatetimeIndex | None = None) -&gt; pd.DatetimeIndex:
+    &quot;&quot;&quot;Rows that should exist but don&#x27;t, judged against the right calendar.&quot;&quot;&quot;
+    if sessions is not None:
+        expected = sessions                       # equities: real exchange sessions
+    else:                                         # crypto / FX-style continuous grid
+        expected = pd.date_range(index.min(), index.max(), freq=freq, tz=&quot;UTC&quot;)
+    return expected.difference(index)
+
+# For equity sessions use a maintained calendar, never a hand-rolled holiday list:
+#   pip install exchange_calendars
+#   sessions = xcals.get_calendar(&quot;XNYS&quot;).sessions_in_range(start, end)</code></pre></figure><h3><span class="step">1.6</span>Unit, scale and currency consistency</h3><p>Cents vs. dollars, pence vs. pounds (LSE data is famous for GBX), per-share vs. total,
+basis points vs. percent, contract price vs. notional, and redenominations. A unit break looks exactly like a
+100&times; price jump. Scan for order-of-magnitude discontinuities and reconcile every one against a known
+cause (split, redenomination, unit change) before believing it.</p><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">import numpy as np
+
+logp   = np.log10(df[&quot;close&quot;].where(df[&quot;close&quot;] &gt; 0))
+jump   = logp.diff().abs()
+breaks = df.index[jump &gt; 0.9]     # ~10x in one bar: split? redenomination? decimal bug?
+# Every entry in `breaks` must be explained by a documented event or repaired.</code></pre></figure><h3><span class="step">1.7</span>Symbol and ticker validation</h3><p>Tickers are not stable identifiers. They get reused (a delisted ticker reassigned to a new
+company), changed (FB&rarr;META), and they differ across venues (BRK.B vs BRK-B vs BRKB). Crypto pairs add
+their own traps: BTCUSD vs BTCUSDT vs BTCUSDC are <em>different instruments</em> with different prices.
+Map everything to a stable internal ID (FIGI/ISIN/permno-style, or your own) at ingestion, and keep a
+ticker-history table. Sanity-check that each symbol&rsquo;s price level is in its plausible range &mdash; a
+&ldquo;BTC&rdquo; series at 1.07 is an FX pair wearing the wrong label.</p><h3><span class="step">1.8</span>Internal OHLCV consistency</h3><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">def ohlc_violations(df: pd.DataFrame) -&gt; pd.DataFrame:
+    v = pd.DataFrame(index=df.index)
+    v[&quot;high_below_low&quot;]   = df[&quot;high&quot;] &lt; df[&quot;low&quot;]
+    v[&quot;high_below_body&quot;]  = df[&quot;high&quot;] &lt; df[[&quot;open&quot;, &quot;close&quot;]].max(axis=1)
+    v[&quot;low_above_body&quot;]   = df[&quot;low&quot;]  &gt; df[[&quot;open&quot;, &quot;close&quot;]].min(axis=1)
+    v[&quot;nonpositive_px&quot;]   = (df[[&quot;open&quot;, &quot;high&quot;, &quot;low&quot;, &quot;close&quot;]] &lt;= 0).any(axis=1)
+    v[&quot;negative_volume&quot;]  = df[&quot;volume&quot;] &lt; 0
+    return v[v.any(axis=1)]      # each hit is a contaminant candidate for Chapter 7</code></pre></figure><p>Add a <strong>stale-bar check</strong>: long runs where open = high = low = close with zero
+volume usually mean the feed froze and forward-filled itself &mdash; disguised missing data (Chapter&nbsp;3),
+not real trading.</p><h3><span class="step">1.9</span>Corporate action adjustments &mdash; only where they apply</h3>
+<p>Corporate actions are mainly a concern for <strong>equities, ETFs and indices</strong>: stock splits,
+dividends, mergers, spin-offs, ticker changes. A 2-for-1 split halves the price overnight without anyone
+losing money; unadjusted, it looks like a &minus;50% crash and destroys every return-based computation.</p>
+<p>Professional practice keeps <strong>two series, permanently</strong>:</p>
+<div class="tablewrap"><table class=""><thead><tr><th>Series</th><th>What it is</th><th>What it's for</th></tr></thead><tbody><tr><td>Raw (unadjusted)</td><td>The prices that actually printed on the tape</td><td>Execution analysis, tick validation, reconciling against the venue, microstructure work</td></tr><tr><td>Adjusted</td><td>Historical prices scaled by cumulative split/dividend factors so the series is economically comparable through time</td><td>Returns, features, labels, backtests &mdash; all research</td></tr></tbody></table></div><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python"># Vendor supplies a cumulative adjustment factor per day (splits, and dividends
+# if you want total-return prices). Keep raw AND adjusted, never overwrite raw.
+df[&quot;close_adj&quot;] = df[&quot;close&quot;] * df[&quot;adj_factor&quot;]
+
+# Sanity check: on non-event days the adjusted return equals the raw return.
+ret_raw = df[&quot;close&quot;].pct_change()
+ret_adj = df[&quot;close_adj&quot;].pct_change()
+event_days = df.index[df[&quot;adj_factor&quot;].diff().abs() &gt; 0]
+assert (ret_raw.drop(event_days) - ret_adj.drop(event_days)).abs().max() &lt; 1e-10</code></pre></figure><aside class="callout danger"><div class="callout-tag">Hard rule</div><div class="callout-body"><strong>Do not blindly adjust every asset class.</strong> Crypto and spot FX have no splits or dividends &mdash; running an equity adjustment routine on them corrupts the data. Futures need <em>roll stitching</em> (building a continuous contract across expiries, usually back-adjusted), which is a different operation with its own artifacts: back-adjusted continuous futures can go negative and their levels are not tradeable prices. Adjust each asset class with the logic that belongs to it.</div></aside><h3><span class="step">1.10</span>First triage of insane values</h3><p>The classic ingestion example:</p><figure class="code"><figcaption><span class="dot"></span>ingested feed</figcaption><pre><code class="language-plaintext">BTCUSDT close:
+100000
+100200
+999999999      &lt;- next tick
+100300</code></pre></figure><p>Possible causes: exchange matching-engine error, decimal/parsing mistake, corrupted feed,
+wrong symbol spliced in. Possible cause it is <em>not</em>, at this magnitude: a market event. But the
+lesson generalizes both ways &mdash; <strong>do not treat every extreme value as an error, and do not treat
+every extreme value as a market event.</strong> At ingestion you only <em>flag</em>; the formal
+outlier-vs-contaminant classification happens in Chapter&nbsp;7 with full context (volume, other venues,
+reversion behaviour).</p><div class="watchout"><div class="check-title">Things that actually go wrong</div><ul><li>Vendor silently restates history &mdash; yesterday&rsquo;s download and today&rsquo;s disagree. Hash and version every delivery.</li><li>Timestamps in exchange-local time joined against UTC data: every feature is off by hours, twice a year it's off by a different amount (DST).</li><li>Bar-label convention mismatch (bar stamped at open vs. at close) silently shifts all features by one bar.</li><li>Volume column switches between base-currency and quote-currency units mid-history (common in crypto vendor exports).</li><li>Equity history without delisted names: survivorship bias inflates every backtest built on it.</li><li>int32 volume overflow on high-activity days turns big volume into negative volume.</li></ul></div><div class="checklist"><div class="check-title">Stage checklist</div><ul><li>Source documented: origin, point-in-time status, survivorship coverage, incident log started.</li><li>Schema &amp; dtypes validated against the locked spec; delivery rejected on mismatch.</li><li>All timestamps parsed, tz-aware UTC, strictly increasing, no duplicates, none in the future; bar-label convention recorded.</li><li>Exact and conflicting duplicates counted and resolved by rule.</li><li>Missing records enumerated against the correct trading calendar.</li><li>Unit/scale discontinuities reconciled against documented events.</li><li>Symbols mapped to stable IDs; ticker-history table updated.</li><li>OHLCV internal consistency violations extracted; stale frozen bars flagged.</li><li>Raw and adjusted series both stored (where adjustment applies); raw kept immutable.</li><li>Extreme values flagged for Chapter 7 triage &mdash; nothing deleted yet.</li></ul></div>
+</section>
+<section class="chapter" id="ch2">
+  <div class="chapter-head">
+    <div class="kicker">Validate &middot; Chapter 02</div>
+    <h2>Know what financial time series are</h2>
+    <div class="sub">Fat tails, clustering, regimes and one-way time: the structural facts that make naive cleaning destructive.</div>
+    <div class="big-n">02</div>
+  </div>
+  
+<p>Financial time series are a hostile environment for standard data-science habits. Before diagnosing or
+repairing anything, internalize what this data <em>is</em> &mdash; because every cleaning decision in later
+chapters depends on it.</p>
+<h3><span class="step">2.1</span>The seven properties that change everything</h3><div class="tablewrap"><table class=""><thead><tr><th>Property</th><th>What it means in practice</th><th>What it forbids</th></tr></thead><tbody><tr><td>Non-stationarity</td><td>Price levels drift and trend; the distribution moves. Returns are closer to stationary, but their variance still shifts.</td><td>Fitting anything on price levels; computing one mean/std for the whole history and using it everywhere.</td></tr><tr><td>Fat tails</td><td>Extreme returns occur orders of magnitude more often than a Gaussian predicts. Daily equity/crypto returns show excess kurtosis of 5&ndash;50+.</td><td>3-sigma outlier rules; Gaussian likelihoods; assuming a 10-sigma print &ldquo;can't be real&rdquo;.</td></tr><tr><td>Volatility clustering</td><td>Big moves follow big moves. |returns| are strongly autocorrelated even when returns are not.</td><td>Treating observations as i.i.d.; imputing quiet values into a stressed period.</td></tr><tr><td>Regime changes</td><td>The data-generating process itself switches: 2017 crypto, March 2020, a rate-hike cycle. Parameters fitted across regimes describe none of them.</td><td>Cleaning or normalizing with statistics pooled across regimes.</td></tr><tr><td>Noise dominance</td><td>Signal-to-noise is brutally low; real predictive effects are small and fragile.</td><td>Aggressive smoothing/denoising that plausibly deletes the entire signal along with the noise.</td></tr><tr><td>Microstructure effects</td><td>Bid&ndash;ask bounce, discrete tick sizes, irregular trade arrival, venue quirks. At high frequency these dominate the series.</td><td>Treating tick data like a smooth curve; interpolating through the bounce; ignoring the price grid.</td></tr><tr><td>Temporal dependency</td><td>Order is information. Today depends on yesterday; information flows one way.</td><td>Row shuffling, random train/test splits, any operation that lets the future touch the past.</td></tr></tbody></table></div><h3><span class="step">2.2</span>Why financial data cannot be cleaned like a tabular dataset</h3>
+<p>Standard tabular hygiene &mdash; drop outliers beyond 3 standard deviations, mean-impute the gaps,
+standardize with full-sample statistics &mdash; is actively destructive here:</p>
+<ul>
+<li>Dropping &gt;3&sigma; points on a fat-tailed series deletes precisely the crash and squeeze days &mdash; the observations that determine real risk and that many strategies live on.</li>
+<li>Mean/median imputation injects values from the wrong regime and creates fake stability inside stressed periods.</li>
+<li>Full-sample statistics leak the future into the past (Chapter&nbsp;10).</li>
+</ul>
+<p>The canonical example, which recurs through this handbook: a rare <strong>+15% BTC daily move</strong>
+could be contamination (bad tick, venue error) <em>or</em> a genuine market event (liquidation cascade,
+ETF headline). The number alone is identical in both cases. Only context &mdash; surrounding ticks, volume,
+other venues, the news tape &mdash; separates them. That is why classification (Chapter&nbsp;7) is a step of
+its own, and why &ldquo;remove outliers&rdquo; is never an instruction on a professional desk.</p>
+<h3><span class="step">2.3</span>Measure the structure before touching the data</h3><p>Run a structure report on every new series and keep it with the dataset. It calibrates
+every later decision: how heavy the tails are (imputation model choice), how strong the clustering is
+(whether gaps can be filled independently), whether levels or returns should be modelled.</p><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">import numpy as np, pandas as pd
+from scipy import stats
+
+def structure_report(close: pd.Series) -&gt; dict:
+    r = np.log(close).diff().dropna()
+    return {
+        &quot;n_obs&quot;:             int(len(r)),
+        &quot;ann_vol&quot;:           float(r.std() * np.sqrt(252)),
+        &quot;skew&quot;:              float(stats.skew(r)),
+        &quot;excess_kurtosis&quot;:   float(stats.kurtosis(r)),   # ~0 if Gaussian; here usually 5-50+
+        &quot;jarque_bera_p&quot;:     float(stats.jarque_bera(r).pvalue),  # ~0 =&gt; reject normality
+        &quot;acf_returns_lag1&quot;:  float(r.autocorr(1)),                # near 0: weak linear signal
+        &quot;acf_abs_lag1&quot;:      float(r.abs().autocorr(1)),          # &gt;&gt; 0: volatility clustering
+        &quot;acf_sq_lag5&quot;:       float((r**2).autocorr(5)),           # persistence of variance
+    }
+
+# Stationarity of levels vs returns (statsmodels, if installed):
+#   from statsmodels.tsa.stattools import adfuller, kpss
+#   adfuller(close)  -&gt; usually fails to reject unit root (prices non-stationary)
+#   adfuller(r)      -&gt; usually rejects (returns ~ stationary)</code></pre></figure><aside class="callout note"><div class="callout-tag">Field note</div><div class="callout-body"><strong>What the numbers typically say.</strong> Daily BTC: excess kurtosis often 8&ndash;20, |r| lag-1 autocorrelation 0.15&ndash;0.35, return lag-1 autocorrelation within noise of zero. If your series reports excess kurtosis near 0, either the asset is unusual or someone already &ldquo;cleaned&rdquo; it &mdash; investigate before trusting it.</div></aside><div class="watchout"><div class="check-title">Things that actually go wrong</div><ul><li>A suspiciously Gaussian financial series usually means upstream filtering already destroyed the tails.</li><li>Structure measured across an obvious regime break (e.g. pre/post a crash) is an average of two different markets &mdash; segment first, then measure.</li><li>Applying daily-data intuition to tick data: at high frequency, microstructure noise, not price dynamics, dominates every statistic.</li></ul></div><div class="checklist"><div class="check-title">Stage checklist</div><ul><li>Structure report computed and stored with the dataset (tails, clustering, stationarity, autocorrelation).</li><li>Levels vs. returns decision made explicit for all later modelling.</li><li>Known regime breaks in the sample period listed before any pooled statistic is computed.</li><li>Team agreement recorded: extreme values are classified, never auto-removed.</li></ul></div>
+</section>
+<section class="chapter" id="ch3">
+  <div class="chapter-head">
+    <div class="kicker">Diagnose &middot; Chapter 03</div>
+    <h2>Missing data: the full taxonomy</h2>
+    <div class="sub">Where the holes are, what shape they have, and why they exist. Nothing gets filled in this chapter.</div>
+    <div class="big-n">03</div>
+  </div>
+  
+<p>Missing data in finance is not one problem &mdash; it is a family of problems with different causes,
+different risks and different correct treatments. The first job is a complete inventory: <strong>where</strong>
+are the holes, <strong>what shape</strong> are they, and <strong>why</strong> are they there. Repair comes
+later (Chapters 4&ndash;6).</p>
+<h3><span class="step">3.1</span>The taxonomy of gap shapes</h3><div class="tablewrap"><table class=""><thead><tr><th>Gap type</th><th>Looks like</th><th>Typical cause</th><th>Reconstruction family (Ch. 5)</th></tr></thead><tbody><tr><td>Single missing point</td><td>100, 101, <b>NaN</b>, 103</td><td>Dropped packet, one failed API call</td><td>Kalman smoothing, AR conditional mean</td></tr><tr><td>Short missing block (2&ndash;5)</td><td>100, 101, <b>NaN, NaN</b>, 104</td><td>Brief outage, throttling</td><td>State-space models, Gaussian processes</td></tr><tr><td>Long missing block</td><td>100, 101, <b>NaN &times; many</b>, 120</td><td>Exchange downtime, halt, vendor failure</td><td>Bayesian state-space, particle filters, diffusion-style ensembles</td></tr><tr><td>Start boundary</td><td><b>???, ???</b>, 100, 101</td><td>Series simply begins; no earlier history exists</td><td>Cannot be imputed &mdash; masked (Ch. 8)</td></tr><tr><td>End boundary</td><td>100, 101, 102, <b>???</b></td><td>The future has not happened</td><td>Cannot be imputed &mdash; masked (Ch. 8)</td></tr><tr><td>Irregular sampling</td><td>09:00, 09:01, <b>09:07</b>, &hellip;</td><td>Event-driven arrival: ticks, trades, quotes</td><td>Point-process / continuous-time models, careful bar construction</td></tr><tr><td>Missing features (cross-sectional)</td><td>BTC&nbsp;10&nbsp;&middot; ETH&nbsp;<b>NaN</b>&nbsp;&middot; SOL&nbsp;32</td><td>One asset&rsquo;s feed down while others print</td><td>Factor models, copulas, cross-sectional regression</td></tr><tr><td>Disguised missing</td><td>Frozen price, zero volume, repeated bar</td><td>Feed froze and repeated itself</td><td>Reclassify as missing first, then treat by shape</td></tr></tbody></table></div><p>The two boundary rows deserve emphasis because they are routinely mishandled: they are not
+imputation problems at all. The start boundary is <em>missing history</em> &mdash; there is nothing before
+the series began, so a 200-day indicator simply cannot exist for the first 199 rows. The end boundary is
+<em>missing future</em> &mdash; a 20-day forward label cannot exist for the last 20 rows. Chapter&nbsp;8 turns
+this into an exact valid-sample calculation.</p><h3><span class="step">3.2</span>Profile every gap</h3><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">import pandas as pd
+
+def gap_table(s: pd.Series) -&gt; pd.DataFrame:
+    &quot;&quot;&quot;One row per contiguous NaN run: position, length, boundary status.&quot;&quot;&quot;
+    isna = s.isna()
+    if not isna.any():
+        return pd.DataFrame(columns=[&quot;start&quot;, &quot;end&quot;, &quot;length&quot;, &quot;at_start&quot;, &quot;at_end&quot;])
+    block = (isna != isna.shift()).cumsum()
+    rows = []
+    for _, seg in s[isna].groupby(block[isna]):
+        rows.append({
+            &quot;start&quot;:  seg.index[0],
+            &quot;end&quot;:    seg.index[-1],
+            &quot;length&quot;: len(seg),
+            &quot;at_start&quot;: seg.index[0] == s.index[0],
+            &quot;at_end&quot;:   seg.index[-1] == s.index[-1],
+        })
+    return pd.DataFrame(rows).sort_values(&quot;start&quot;).reset_index(drop=True)</code></pre></figure><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python"># Irregular sampling check: how uneven is the clock?
+dt = s.index.to_series().diff().dt.total_seconds().dropna()
+profile = {
+    &quot;median_dt&quot;:   dt.median(),
+    &quot;p99_dt&quot;:      dt.quantile(0.99),
+    &quot;irregularity&quot;: float(dt.gt(3 * dt.median()).mean()),  # share of &quot;late&quot; arrivals
+}
+# Rule of thumb: &gt; a few % of intervals at 3x the median =&gt; treat the series as
+# irregularly sampled (tick-style), not as a broken regular grid.</code></pre></figure><h3><span class="step">3.3</span>Missingness mechanisms: MCAR, MAR, MNAR</h3><p>Shape says how to reconstruct; <strong>mechanism</strong> says how dangerous the hole is.
+The standard statistical taxonomy, translated into market reality:</p><div class="tablewrap"><table class=""><thead><tr><th>Mechanism</th><th>Definition</th><th>Financial example</th><th>Risk level</th></tr></thead><tbody><tr><td>MCAR &mdash; missing completely at random</td><td>Missingness unrelated to anything</td><td>Random API failure, dropped packets</td><td>Low: any sensible method works; mostly a variance cost</td></tr><tr><td>MAR &mdash; missing at random</td><td>Missingness depends on <em>observed</em> variables</td><td>Low-volume assets drop out more often; gaps cluster in overnight sessions</td><td>Medium: condition the reconstruction on those observed variables</td></tr><tr><td>MNAR &mdash; missing not at random</td><td>Missingness depends on the <em>hidden</em> values themselves</td><td>Exchange goes down <em>because</em> of the extreme move; venue halts during the crash; stale marks in stressed illiquid markets</td><td>High: the gap is informative. Naive filling systematically hides exactly the extreme states you care about</td></tr></tbody></table></div><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python"># Cheap mechanism evidence: does missingness co-move with observable state?
+miss = s.isna().astype(float)
+vol_state    = volume.rolling(21).mean().shift(1)          # yesterday&#x27;s liquidity
+stress_state = s.pct_change().abs().rolling(5).mean().shift(1)
+
+print(&quot;corr(miss, lagged volume):    &quot;, round(miss.corr(vol_state), 3))   # negative -&gt; MAR
+print(&quot;corr(miss, lagged |returns|): &quot;, round(miss.corr(stress_state), 3)) # positive -&gt; MNAR suspicion
+# MNAR can never be *proven* from the data alone -- it depends on values you
+# never saw. Treat operational knowledge (&quot;the venue halts on volatility&quot;) as data.</code></pre></figure><aside class="callout danger"><div class="callout-tag">Hard rule</div><div class="callout-body"><strong>MNAR gaps around market stress are the most dangerous holes in finance.</strong> If data disappears during extreme events and you fill the gap with anything smooth, you have manufactured a calmer history than the market ever offered. Every risk number and every backtest downstream inherits that lie. MNAR-suspect gaps get conservative treatment: reconstruct with wide uncertainty, flag heavily, and consider excluding the window from training rather than repairing it.</div></aside><div class="watchout"><div class="check-title">Things that actually go wrong</div><ul><li>Forward-filled vendor data hides gaps as frozen prices &mdash; run the stale-bar check from Chapter 1 before profiling, or your gap table will be empty and wrong.</li><li>Gaps counted against the wrong calendar (weekends &ldquo;missing&rdquo; in equities, real 3 a.m. outages invisible in crypto).</li><li>Cross-sectional holes treated column by column when the assets are cointegrated &mdash; you throw away the best reconstruction information there is.</li><li>Zero volume recorded as zero price by some feeds: a zero is not a NaN, and it is much more destructive.</li></ul></div><div class="checklist"><div class="check-title">Stage checklist</div><ul><li>Stale/frozen segments reclassified as missing before profiling.</li><li>Gap table produced: every run's position, length, boundary status.</li><li>Sampling regularity measured; series formally declared regular or irregular.</li><li>Mechanism evidence computed (missingness vs. volume, vs. volatility) and operational causes recorded.</li><li>MNAR-suspect windows explicitly listed for conservative handling.</li></ul></div>
+</section>
+<section class="chapter" id="ch4">
+  <div class="chapter-head">
+    <div class="kicker">Diagnose &middot; Chapter 04</div>
+    <h2>Classify before you impute</h2>
+    <div class="sub">A formal diagnosis step between finding holes and filling them &mdash; with a reviewable decision table as its output.</div>
+    <div class="big-n">04</div>
+  </div>
+  
+<p>The single most common amateur mistake with financial gaps is reaching for
+<code>fillna()</code> in the same line that discovered them. Professional pipelines insert a formal
+step between detection and repair: <strong>classification</strong>. Its output is a decision table &mdash; a
+reviewable artifact &mdash; not a filled series.</p>
+<aside class="callout principle"><div class="callout-tag">Principle</div><div class="callout-body"><strong>Never blindly fill missing values.</strong> First determine: what type of gap is it? Why is it missing? How long is it? How high is the uncertainty? Only then does the method choose itself. Diagnosis and treatment are different steps performed by different code.</div></aside><h3><span class="step">4.1</span>The five questions, in order</h3>
+<ol>
+<li><strong>What shape?</strong> Single point, short block, long block, boundary, irregular, cross-sectional (Chapter&nbsp;3 taxonomy).</li>
+<li><strong>Why is it missing?</strong> MCAR / MAR / MNAR evidence plus operational cause (outage log, halt calendar, vendor incident).</li>
+<li><strong>How long, relative to the data&rsquo;s memory?</strong> A 3-bar gap in daily data is small; a 3-hour gap in tick data spans thousands of events. Judge length in units of the series&rsquo; autocorrelation, not wall-clock.</li>
+<li><strong>How high is the uncertainty?</strong> Gaps in calm regimes are cheap to reconstruct; gaps during stress (check realized vol around the hole) carry wide error bars whatever the method.</li>
+<li><strong>What is the downstream use?</strong> Data feeding a volatility model must not have its variance smoothed away; data feeding a long-horizon trend feature tolerates smoother fills. The consumer constrains the method.</li>
+</ol>
+<h3><span class="step">4.2</span>A working classifier</h3><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">def classify_gap(length: int, at_start: bool, at_end: bool,
+                 regular: bool, stressed: bool) -&gt; dict:
+    &quot;&quot;&quot;Turn one gap&#x27;s facts into a class + recommended method family.&quot;&quot;&quot;
+    if at_start:
+        return {&quot;class&quot;: &quot;start_boundary&quot;, &quot;action&quot;: &quot;mask (Ch.8) - never impute&quot;}
+    if at_end:
+        return {&quot;class&quot;: &quot;end_boundary&quot;,   &quot;action&quot;: &quot;mask (Ch.8) - never impute&quot;}
+    if not regular:
+        return {&quot;class&quot;: &quot;irregular_sampling&quot;,
+                &quot;action&quot;: &quot;event-time methods / careful bar construction&quot;}
+    if length == 1:
+        base = {&quot;class&quot;: &quot;single_point&quot;,   &quot;action&quot;: &quot;Kalman smoother or AR conditional mean&quot;}
+    elif length &lt;= 5:
+        base = {&quot;class&quot;: &quot;short_block&quot;,    &quot;action&quot;: &quot;state-space smoother, GP, or t-AR EM&quot;}
+    elif length &lt;= 60:
+        base = {&quot;class&quot;: &quot;long_block&quot;,     &quot;action&quot;: &quot;Bayesian state-space / t-AR EM / ensembles&quot;}
+    else:
+        base = {&quot;class&quot;: &quot;regime_gap&quot;,
+                &quot;action&quot;: &quot;consider NOT bridging: segment the history instead&quot;}
+    if stressed:
+        base[&quot;action&quot;] += &quot;  [stressed context: widen uncertainty, flag MNAR risk]&quot;
+    return base</code></pre></figure><h3><span class="step">4.3</span>The decision table is the deliverable</h3><p>The output of this stage is the gap table from Chapter&nbsp;3 with three columns appended:
+<code>class</code>, <code>mechanism_evidence</code>, <code>recommended_method</code>. On a desk this table is
+what gets reviewed &mdash; a human (or a strict rule set) signs off on it before any value is written. It also
+becomes part of the dataset&rsquo;s permanent audit trail: six months later you can answer &ldquo;why is
+2024-03-12 imputed, with what, and how sure were we?&rdquo; in one lookup.</p><div class="dodont"><div class="dd do"><div class="dd-tag">Do</div><strong>Emit a classification artifact</strong><p>Gap table &rarr; classes &rarr; chosen methods &rarr; sign-off &rarr; only then repair. Every fill is traceable to a reviewed decision.</p></div><div class="dd dont"><div class="dd-tag">Don&rsquo;t</div><strong>Repair inside the detection loop</strong><p><code>df[col] = df[col].interpolate()</code> as a &ldquo;preprocessing line&rdquo; makes every later statistic a mixture of market and invention, with no record of which is which.</p></div></div><div class="watchout"><div class="check-title">Things that actually go wrong</div><ul><li>One global fill method applied to all gaps &ldquo;for consistency&rdquo; &mdash; consistency across different problems is a bug, not a feature.</li><li>Gap length judged in wall-clock time instead of in bars/events &mdash; a weekend is not a gap in equities and three hours is an eternity in ticks.</li><li>Classification skipped for &ldquo;just a few NaNs&rdquo;: the few NaNs are usually the halt during the crash.</li></ul></div><div class="checklist"><div class="check-title">Stage checklist</div><ul><li>Every gap answered on all five questions.</li><li>Decision table produced: gap &rarr; class &rarr; mechanism &rarr; method &rarr; expected uncertainty.</li><li>MNAR-suspect and regime-length gaps escalated for explicit sign-off.</li><li>Nothing has been filled yet.</li></ul></div>
+</section>
+<section class="chapter" id="ch5">
+  <div class="chapter-head">
+    <div class="kicker">Repair &middot; Chapter 05</div>
+    <h2>Imputation methods and when to use them</h2>
+    <div class="sub">From the dangerous defaults to Kalman smoothing to Palomar's heavy-tailed stochastic EM &mdash; matched to the gap classes of Chapter 4.</div>
+    <div class="big-n">05</div>
+  </div>
+  
+<p>With gaps classified, choose the reconstruction. This chapter goes from the methods you should rarely use,
+through the workhorse state-space tools, to the heavy-tailed EM approach designed specifically for financial
+series, and ends with a selection cheat sheet.</p>
+<h3><span class="step">5.1</span>Why the &ldquo;easy&rdquo; methods are dangerous</h3><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">filled = close.ffill()               # the most common line in amateur pipelines
+r = filled.pct_change()
+# Every forward-filled bar prints a fake 0% return:
+#   - volatility is biased DOWN (fake calm),
+#   - autocorrelation is biased UP (fake persistence),
+#   - stale-price detectors now flag your own imputation,
+#   - and in a backtest you &quot;trade&quot; at a price that never existed.</code></pre></figure>
+<ul>
+<li><strong>Forward fill</strong>: acceptable only as an explicit &ldquo;last known value&rdquo; state variable (with an age counter), never as a price.</li>
+<li><strong>Linear interpolation</strong>: uses the point <em>after</em> the gap, i.e. the future. Tolerable for offline historical reconstruction if flagged; forbidden anywhere near live features (Chapter&nbsp;10). It also draws a straight line through what was really a volatile path &mdash; variance inside the gap collapses to zero.</li>
+<li><strong>Mean/median imputation</strong>: injects a whole-sample level into a local context; in a trending series the filled value can be years away from its neighbours. Never appropriate for prices.</li>
+</ul>
+<h3><span class="step">5.2</span>Kalman filtering and smoothing (the workhorse)</h3><p>Model the series as a latent state observed with noise; where observations are missing the
+filter simply propagates its prediction, and the backward (RTS) smoother then blends information from both
+sides. You get a fill <em>and</em> an uncertainty for every point &mdash; which is the minimum standard for
+research-grade imputation. A compact local-level implementation:</p><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">import numpy as np, pandas as pd
+
+def kalman_impute(y: pd.Series, q_ratio: float = 0.05):
+    &quot;&quot;&quot;Local-level Kalman filter + RTS smoother. Returns (filled, stdev).&quot;&quot;&quot;
+    x    = y.to_numpy(dtype=float)
+    obs  = np.isfinite(x)
+    R    = float(np.nanvar(np.diff(x[obs]))) or 1e-8      # observation noise
+    Q    = R * q_ratio                                    # state noise
+    n    = len(x)
+    m    = np.empty(n); P  = np.empty(n)                  # filtered
+    mp   = np.empty(n); Pp = np.empty(n)                  # predicted
+    level, var = x[obs][0], R * 10.0
+    for t in range(n):
+        lp, vp = level, var + Q                           # predict
+        mp[t], Pp[t] = lp, vp
+        if obs[t]:                                        # update only if observed
+            K     = vp / (vp + R)
+            level = lp + K * (x[t] - lp)
+            var   = (1.0 - K) * vp
+        else:
+            level, var = lp, vp
+        m[t], P[t] = level, var
+    for t in range(n - 2, -1, -1):                        # RTS backward smoother
+        C     = P[t] / Pp[t + 1]
+        m[t] += C * (m[t + 1] - mp[t + 1])
+        P[t] += C**2 * (P[t + 1] - Pp[t + 1])
+    out = y.copy()
+    out[~obs] = m[~obs]
+    return out, pd.Series(np.sqrt(np.maximum(P, 0)), index=y.index)</code></pre></figure><h3><span class="step">5.3</span>Autoregressive (AR) conditional imputation</h3><p>Fit an AR model on the observed data and fill each hole with its conditional expectation
+given the neighbours. For a single interior point under AR(1) this is a precision-weighted blend of the
+forward prediction from <code>y[t-1]</code> and the backward implication of <code>y[t+1]</code>. Simple,
+fast, respects the series&rsquo; own dynamics &mdash; and it is the skeleton the next method builds on.</p><h3><span class="step">5.4</span>The Palomar approach: heavy-tailed AR with stochastic EM</h3>
+<p>Prof. <strong>Daniel P. Palomar</strong>&rsquo;s group (HKUST) developed the imputation approach that
+practitioners treat as the reference for financial series, implemented in the R package
+<code>imputeFin</code> (Liu&nbsp;&amp;&nbsp;Palomar). Three ingredients define it:</p>
+<ul>
+<li><strong>Autoregressive modelling</strong> &mdash; the series (typically log-prices or returns) follows an AR process, so temporal dependency is respected rather than ignored.</li>
+<li><strong>Heavy-tailed (Student-t) innovations</strong> &mdash; the shocks are t-distributed, not Gaussian.</li>
+<li><strong>Stochastic Expectation&ndash;Maximization</strong> &mdash; missing values and model parameters are estimated jointly, iterating draws of the missing data with parameter updates.</li>
+</ul>
+<p><strong>Why the heavy tails matter:</strong> financial returns are not normally distributed &mdash; they
+contain fat tails and extreme-but-valid market events (Chapter&nbsp;2). A Gaussian imputation model treats a
+crash next to a gap as near-impossible, so it drags the fill toward calm values and understates uncertainty.
+A Student-t model expects occasional violence: it down-weights extreme neighbours when estimating the
+<em>parameters</em> (so one crash doesn&rsquo;t corrupt the fit) while still allowing the <em>filled values</em>
+to live in a fat-tailed world.</p>
+<figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python"># The stochastic EM loop (Palomar-style), conceptually:
+# model:  y_t = phi0 + phi1 * y_{t-1} + sigma * eps_t,   eps_t ~ Student-t(nu)
+
+initialize(y_missing)                              # e.g. rough interpolation
+for iteration in range(max_iter):                  # repeat until convergence
+    # E-step (a): tail weights from current residuals
+    e = y - (phi0 + phi1 * lag(y))
+    w = (nu + 1) / (nu + (e / sigma) ** 2)         # extreme point -&gt; small weight
+
+    # E-step (b): redraw missing values from their conditional distribution
+    #   p(y_missing | y_observed, phi0, phi1, sigma, nu)
+    # (for AR(1): a state-space smoother with time-varying noise sigma^2 / w_t,
+    #  sampled -- the &quot;stochastic&quot; in stochastic EM)
+    y = draw_missing(y, phi0, phi1, sigma, w)
+
+    # M-step: update parameters given the completed series
+    phi0, phi1 = weighted_least_squares(y, w)
+    sigma      = weighted_scale(e, w)
+    nu         = maximize_t_likelihood(e / sigma)  # 1-D search over degrees of freedom
+
+# Final imputation: average the last draws; their spread = reconstruction uncertainty.</code></pre></figure><div class="tablewrap"><table class=""><thead><tr><th>Advantages</th><th>Limitations</th></tr></thead><tbody><tr><td>Designed for financial time series; respects temporal dependency instead of filling points independently</td><td>Depends on the AR + t model being roughly right; misspecification biases the fills</td></tr><tr><td>Handles non-Gaussian behaviour far better than Gaussian/simple methods &mdash; robust parameter estimates, realistic uncertainty</td><td>Less flexible for highly nonlinear dynamics (structural breaks inside the gap, complex regime behaviour)</td></tr><tr><td>Statistically consistent joint estimation of parameters and missing values, with uncertainty for free</td><td>Iterative: heavier than interpolation; needs convergence monitoring on short series</td></tr></tbody></table></div><aside class="callout note"><div class="callout-tag">Field note</div><div class="callout-body"><strong>In this handbook's companion package.</strong> <code>ResearchReadyPy</code> implements this as <code>impute_student_t_em()</code> &mdash; a stochastic-EM AR(1)-Student-t imputer via the Gaussian scale-mixture (IRLS) representation with a state-space smoother, returning fills, per-point uncertainty and the fitted (phi, sigma, nu). For maximum-fidelity production use, Palomar&rsquo;s original <code>imputeFin</code> in R remains the reference implementation.</div></aside><h3><span class="step">5.5</span>The rest of the toolbox</h3><div class="tablewrap"><table class=""><thead><tr><th>Method</th><th>What it adds</th><th>Use when</th></tr></thead><tbody><tr><td>Kalman smoother / state-space</td><td>Fast, uncertainty-aware, exact for linear-Gaussian dynamics</td><td>Single points and short blocks; the default workhorse</td></tr><tr><td>Gaussian processes</td><td>Flexible nonparametric curves with principled uncertainty</td><td>Smooth low-frequency series, short-to-medium gaps; costly at scale</td></tr><tr><td>Bayesian state-space models</td><td>Full posterior over states and parameters; priors encode market knowledge</td><td>Long gaps where parameter uncertainty matters as much as state uncertainty</td></tr><tr><td>Particle filters</td><td>Handle nonlinear, non-Gaussian dynamics no Kalman variant can</td><td>Regime-switching or strongly nonlinear latent dynamics across the gap</td></tr><tr><td>EM algorithms (incl. t-AR above)</td><td>Joint parameter + missing-value estimation</td><td>Whenever parameters must be learned from gappy data itself</td></tr><tr><td>Diffusion / generative ensembles</td><td>Multiple plausible paths, distribution-level uncertainty</td><td>Long blocks; scenario-style reconstruction (Chapter 6)</td></tr><tr><td>Factor models / copulas</td><td>Borrow strength across correlated assets</td><td>Cross-sectional holes: one asset dark while its cohort prints</td></tr><tr><td>Microstructure-aware models</td><td>Respect tick grid, spread, event-time arrival</td><td>Any high-frequency reconstruction; naive smoothing is meaningless here</td></tr></tbody></table></div><h3><span class="step">5.6</span>Selection cheat sheet</h3><div class="tablewrap"><table class=""><thead><tr><th>Situation</th><th>First choice</th><th>Also acceptable</th></tr></thead><tbody><tr><td>Single missing point</td><td>Kalman smoothing</td><td>AR conditional mean</td></tr><tr><td>Short block (2&ndash;5)</td><td>State-space smoother</td><td>Gaussian process; t-AR EM</td></tr><tr><td>Medium gap</td><td>Palomar t-AR stochastic EM</td><td>Bayesian state-space</td></tr><tr><td>Long missing regime</td><td>Bayesian state-space / particle filter</td><td>Diffusion-style ensemble; or don't bridge &mdash; segment</td></tr><tr><td>Multi-asset (cross-sectional) holes</td><td>Factor-model reconstruction</td><td>Copula methods</td></tr><tr><td>High-frequency / tick</td><td>Microstructure-aware event-time model</td><td>Rebuild bars from surviving events</td></tr><tr><td>Stress-window gap (MNAR suspicion)</td><td>Widest-uncertainty method + heavy flags</td><td>Exclude window from training</td></tr></tbody></table></div><h3><span class="step">5.7</span>Golden rules for every imputation, whatever the method</h3><div class="checklist"><div class="check-title">Golden rules</div><ul><li>Never impute the target/labels &mdash; a manufactured label is a manufactured result.</li><li>Every filled point carries a flag column (<code>*_was_missing</code>) and an uncertainty (<code>*_imputed_std</code>).</li><li>Imputation runs per instrument and never blindly across a documented regime break.</li><li>Downstream models can (and should) receive the flags as features or sample weights.</li><li>The repair log records: gap id, method, parameters, uncertainty, who/what approved it.</li><li>Re-run the Chapter 2 structure report after imputation: volatility and tail statistics must not have visibly collapsed.</li></ul></div>
+</section>
+<section class="chapter" id="ch6">
+  <div class="chapter-head">
+    <div class="kicker">Repair &middot; Chapter 06</div>
+    <h2>Diffusion-style generative reconstruction</h2>
+    <div class="sub">Many plausible paths instead of one confident lie: ensembles, uncertainty, and the hard limits of generation.</div>
+    <div class="big-n">06</div>
+  </div>
+  
+<p>For long gaps and for uncertainty estimation, a single &ldquo;best&rdquo; fill is the wrong shape of
+answer. Generative, diffusion-style reconstruction produces <strong>many plausible paths</strong> and lets
+you keep the whole distribution.</p>
+<h3><span class="step">6.1</span>What diffusion models are, in one paragraph</h3><p>Diffusion models are generative probabilistic models. Trained on data, they learn to reverse
+a gradual noising process, which gives them a way to sample from <code>p(clean&nbsp;data&nbsp;|&nbsp;observed&nbsp;data)</code>
+&mdash; the distribution of complete series consistent with what you actually saw. In financial data work they
+are used for <strong>denoising</strong>, <strong>missing-data reconstruction</strong> (conditional generation
+given the observed points), <strong>scenario generation</strong>, and <strong>uncertainty estimation</strong>
+(the spread of the samples is the error bar). Time-series imputers in this family (CSDI-style conditional
+score-based models) are active research and increasingly practical; the honest desk view is that they are
+powerful for representation and uncertainty, and dangerous if mistaken for truth.</p><h3><span class="step">6.2</span>The ensemble workflow</h3><figure class="code"><figcaption><span class="dot"></span>ensemble reconstruction</figcaption><pre><code class="language-plaintext">observed:    100   101   ???   105
+
+sample many completions consistent with both anchors:
+
+  scenario 1:  100   101   102   105
+  scenario 2:  100   101   103   105
+  scenario 3:  100   101   101   105
+  ...          (hundreds of paths)
+
+then report, per missing bar:
+  expected value      = mean across paths
+  uncertainty         = std across paths
+  confidence interval = path quantiles (e.g. 5%..95%)</code></pre></figure><p>The simplest member of the family needs no neural network at all: a
+<strong>constrained stochastic bridge</strong> that walks from the left anchor with locally-fitted drift and
+fat-tailed shocks and is pinned to the right anchor. It is a legitimate baseline, it demonstrates the whole
+workflow, and it is what you should implement before reaching for a learned model:</p><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">import numpy as np, pandas as pd
+
+def gap_scenarios(y: pd.Series, gap: pd.Index, n_paths: int = 300,
+                  nu: float = 4.0, lookback: int = 250, seed: int = 0):
+    &quot;&quot;&quot;Constrained stochastic-bridge ensemble for one interior gap.
+    Returns (mean, lo95, hi95, all_paths) for the missing bars.&quot;&quot;&quot;
+    rng   = np.random.default_rng(seed)
+    ia    = y.index.get_loc(gap[0]) - 1          # left anchor
+    ib    = y.index.get_loc(gap[-1]) + 1         # right anchor
+    hist  = np.log(y.iloc[:ia + 1]).diff().dropna().tail(lookback)
+    mu, sd = float(hist.mean()), float(hist.std())
+    L     = ib - ia                              # steps from anchor to anchor
+    a, b  = np.log(y.iloc[ia]), np.log(y.iloc[ib])
+    paths = np.empty((n_paths, L + 1))
+    for p in range(n_paths):
+        steps    = mu + sd * rng.standard_t(nu, size=L)     # fat-tailed shocks
+        walk     = np.concatenate([[a], a + np.cumsum(steps)])
+        walk    += np.linspace(0.0, b - walk[-1], L + 1)    # pin the far anchor
+        paths[p] = walk
+    px = np.exp(paths[:, 1:-1])                  # interior = the missing bars
+    return px.mean(0), np.percentile(px, 5, 0), np.percentile(px, 95, 0), px</code></pre></figure><h3><span class="step">6.3</span>What the reconstruction is &mdash; and is not</h3><aside class="callout danger"><div class="callout-tag">Hard rule</div><div class="callout-body"><strong>A generated path is not a trading signal.</strong> Diffusion-style reconstruction is a <em>data representation layer</em>, an <em>uncertainty estimation layer</em>, and a <em>latent market-state extraction tool</em>. It must not directly become a signal: the generator will happily manufacture structure, and a strategy can end up trading the model's imagination. Downstream models may consume the mean path <em>together with</em> its uncertainty; they may never treat sampled paths as history that happened.</div></aside><aside class="callout warn"><div class="callout-tag">Watch out</div><div class="callout-body"><strong>Realistic is not the same as correct.</strong> A generated path can look perfectly plausible &mdash; right volatility, right clustering &mdash; and still be historically wrong about what occurred inside the gap. Always validate reconstructions economically and statistically: do ensemble moments match the surrounding market? do cross-asset relationships hold through the filled window? does an independent venue's data (if any survives) fall inside the interval? If the true path matters (e.g. a halt during a crash), no generator can conjure it &mdash; widen the uncertainty or exclude the window.</div></aside><div class="watchout"><div class="check-title">Things that actually go wrong</div><ul><li>Averaging many paths and then treating the smooth mean as if it had normal volatility &mdash; the mean of paths is smoother than any path; keep the spread.</li><li>Training a learned generator on the same history you later &ldquo;reconstruct&rdquo; for backtesting &mdash; a quiet form of leakage.</li><li>Ensembles anchored on a contaminated endpoint (Chapter 7 not yet run): every path inherits the bad tick.</li></ul></div><div class="checklist"><div class="check-title">Stage checklist</div><ul><li>Long gaps reconstructed as ensembles, not single paths.</li><li>Mean, interval and full path set stored; uncertainty travels with the data.</li><li>Reconstructions validated against surrounding moments and any independent source.</li><li>Documented rule in place: generated data never feeds signals directly.</li></ul></div>
+</section>
+<section class="chapter" id="ch7">
+  <div class="chapter-head">
+    <div class="kicker">Repair &middot; Chapter 07</div>
+    <h2>Outliers vs. contaminants</h2>
+    <div class="sub">Rare-but-real versus invalid-by-construction: opposite objects, opposite treatments, and the evidence that separates them.</div>
+    <div class="big-n">07</div>
+  </div>
+  
+<p>This is the distinction that separates professional financial data work from generic data cleaning, so it
+gets stated in full: <strong>an outlier and a contaminant are different objects with opposite treatments</strong>.
+&ldquo;Remove outliers&rdquo; is never the instruction. &ldquo;Classify extremes, keep the real ones, repair
+the fake ones, log everything&rdquo; is.</p>
+<div class="tablewrap"><table class=""><thead><tr><th></th><th>Outlier</th><th>Contaminant</th></tr></thead><tbody><tr><td>Definition</td><td>A rare but <strong>real</strong> observation &mdash; the market actually did that</td><td>An <strong>invalid</strong> observation &mdash; the market never did that</td></tr><tr><td>Example</td><td>BTC &plus;20% on a liquidation cascade, a macro shock, a major headline</td><td>999&nbsp;999&nbsp;999 printed between ticks at ~100&nbsp;300: bad tick, API error, wrong decimal, wrong symbol</td></tr><tr><td>Information content</td><td>High &mdash; tail risk and (often) alpha live here</td><td>Zero &mdash; pure measurement error</td></tr><tr><td>Treatment</td><td><strong>Keep.</strong> Model with heavy-tailed distributions, extreme value theory (EVT), volatility models</td><td><strong>Repair or remove</strong>, with a logged audit entry</td></tr><tr><td>If mishandled</td><td>Deleting it fabricates a calm market: risk models understate, backtests overstate</td><td>Keeping it corrupts vol estimates, triggers fake signals, poisons training</td></tr></tbody></table></div><h3><span class="step">7.1</span>Evidence, not thresholds</h3><p>No single statistic separates the two &mdash; both are extreme by construction. Desks use a
+<strong>consensus of independent evidence</strong>:</p>
+<ul>
+<li><strong>Robust statistics (MAD z-score):</strong> flags <em>candidates</em>. Median/MAD are used instead of mean/std precisely because fat tails corrupt the classical estimates.</li>
+<li><strong>Reversion behaviour:</strong> the classic bad-tick signature is a one-bar spike that fully reverses next bar. Real shocks usually persist or continue.</li>
+<li><strong>Volume confirmation:</strong> real violent moves happen on violent volume. A 20% move on dead volume is suspicious.</li>
+<li><strong>Cross-venue comparison:</strong> did Coinbase, Kraken and OKX print it too? A move that exists on one venue only is a venue artifact (or a thin-book event &mdash; still not the market).</li>
+<li><strong>Market context:</strong> halt calendars, news timestamps, macro releases, funding events. A spike at a CPI release is context-confirmed.</li>
+<li><strong>Model residuals:</strong> Kalman innovations or diffusion-reconstruction error &mdash; how surprising is the point to a model of the local dynamics?</li>
+<li><strong>Tick plausibility:</strong> does the price sit on the instrument&rsquo;s tick grid? Off-grid prices in tick data are mechanically impossible.</li>
+</ul><h3><span class="step">7.2</span>A triage implementation</h3><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">import numpy as np, pandas as pd
+
+def robust_z(x: pd.Series, window: int = 63) -&gt; pd.Series:
+    &quot;&quot;&quot;Rolling MAD z-score: outlier-resistant surprise measure.&quot;&quot;&quot;
+    med = x.rolling(window, min_periods=20, center=True).median()
+    mad = (x - med).abs().rolling(window, min_periods=20, center=True).median()
+    return 0.6745 * (x - med) / mad.replace(0.0, np.nan)
+
+def triage(close: pd.Series, volume: pd.Series | None = None,
+           alt_close: pd.Series | None = None,
+           z_thresh: float = 8.0) -&gt; pd.DataFrame:
+    &quot;&quot;&quot;Label each bar: valid / outlier (keep) / contaminant (repair) / uncertain.&quot;&quot;&quot;
+    r   = close.pct_change()
+    z   = robust_z(close)
+    out = pd.DataFrame(index=close.index)
+    out[&quot;extreme&quot;] = z.abs() &gt; z_thresh
+    nxt            = r.shift(-1)
+    out[&quot;reverts&quot;] = (np.sign(nxt) == -np.sign(r)) &amp; (nxt.abs() &gt; 0.5 * r.abs())
+    if volume is not None:
+        vmed = volume.rolling(63, min_periods=20).median()
+        out[&quot;volume_confirms&quot;] = volume &gt; 3 * vmed
+    if alt_close is not None:
+        out[&quot;venue_agrees&quot;] = (close / alt_close - 1).abs() &lt; 0.02
+
+    def verdict(row):
+        if not row[&quot;extreme&quot;]:
+            return &quot;valid&quot;
+        against = row.get(&quot;reverts&quot;, False) or (row.get(&quot;venue_agrees&quot;) is False)
+        support = row.get(&quot;volume_confirms&quot;, False) or (row.get(&quot;venue_agrees&quot;) is True)
+        if against and not support: return &quot;contaminant&quot;
+        if support and not against: return &quot;outlier&quot;
+        return &quot;uncertain&quot;                          # escalate to a human + more context
+
+    out[&quot;label&quot;] = out.apply(verdict, axis=1)
+    return out</code></pre></figure><h3><span class="step">7.3</span>Treatment</h3><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">labels = triage(close, volume, alt_close)[&quot;label&quot;]
+
+# Outliers: KEEP. Handle in the MODEL, not the data:
+#   - Student-t / heavy-tailed likelihoods, EVT for the tail, GARCH-family vol models.
+
+# Contaminants: repair with a local model, keep raw untouched, log everything.
+repaired, sd = kalman_impute(close.mask(labels == &quot;contaminant&quot;))   # from Ch. 5
+audit_log.append({
+    &quot;ts&quot;: list(close.index[labels == &quot;contaminant&quot;]),
+    &quot;action&quot;: &quot;repair&quot;, &quot;method&quot;: &quot;kalman_local_level&quot;,
+    &quot;evidence&quot;: &quot;spike+full reversion, no volume, venue disagreement&quot;,
+})
+
+# Uncertain: do NOT guess. Escalate, gather context, or exclude the bar with a flag.</code></pre></figure><div class="dodont"><div class="dd do"><div class="dd-tag">Do</div><strong>Winsorize features with past-only rolling stats, if you must</strong><p>Clipping engineered <em>features</em> at rolling past-only quantiles is a defensible robustness choice &mdash; documented, reversible, leak-free.</p></div><div class="dd dont"><div class="dd-tag">Don&rsquo;t</div><strong>Winsorize or delete raw prices by a global threshold</strong><p>A full-sample 3&sigma; clip deletes every crisis (destroying risk information) and uses the future to define &ldquo;normal&rdquo; (leakage, Chapter 10).</p></div></div><div class="watchout"><div class="check-title">Things that actually go wrong</div><ul><li>Flash crashes are the hard case: real trades, mostly reverted, economically meaningful. They are <em>outliers with reversion</em> &mdash; volume and multi-venue prints separate them from bad ticks. When in doubt: keep, flag, document.</li><li>Repairing a contaminant but leaving its ghost in derived columns (returns, vol) computed earlier &mdash; always recompute downstream columns after repair.</li><li>Cross-venue checks against a venue that shares the same upstream aggregator: false confirmation.</li><li>Thresholds tuned until the data &ldquo;looks nice&rdquo; &mdash; that is curve-fitting your own cleaning.</li></ul></div><div class="checklist"><div class="check-title">Stage checklist</div><ul><li>Every extreme point labelled valid / outlier / contaminant / uncertain with recorded evidence.</li><li>Outliers kept; modelling plan for tails documented (t-likelihoods, EVT, vol models).</li><li>Contaminants repaired via local model; raw preserved; audit entries written.</li><li>Uncertain points escalated &mdash; not silently guessed.</li><li>Derived columns recomputed after repair.</li></ul></div>
+</section>
+<section class="chapter" id="ch8">
+  <div class="chapter-head">
+    <div class="kicker">Assemble &middot; Chapter 08</div>
+    <h2>Temporal boundary problems</h2>
+    <div class="sub">Giller's principle: the beginning is missing history, the end is missing future, and only the middle is research.</div>
+    <div class="big-n">08</div>
+  </div>
+  
+<p>Graham Giller&rsquo;s boundary principle, which every research dataset must obey: <strong>a raw dataset is
+not automatically usable from its first row to its last.</strong> Both ends are silently invalid, for
+different reasons, and the invalid zones must be computed &mdash; not eyeballed.</p>
+<h3><span class="step">8.1</span>The start boundary: missing history</h3><figure class="code"><figcaption><span class="dot"></span>start boundary</figcaption><pre><code class="language-plaintext">SMA(200) example, daily bars:
+
+row   1..199   SMA(200) = INVALID   (not enough history exists)
+row   200..    SMA(200) = valid
+
+Any 200-day feature is undefined for the first 199 rows -- not &quot;approximately
+right&quot;, not &quot;warmed up enough&quot;: undefined.</code></pre></figure><p>Every lookback in the feature set claims rows at the start: rolling windows, EWMA burn-in
+(an EWMA needs several multiples of its span before initialization effects wash out), volatility estimators,
+normalization windows. The start boundary of the dataset is set by the <strong>largest</strong> of them.</p><h3><span class="step">8.2</span>The end boundary: missing future</h3><figure class="code"><figcaption><span class="dot"></span>end boundary</figcaption><pre><code class="language-plaintext">20-day forward-return label, daily bars:
+
+row   N-19..N   label = INVALID   (the future hasn&#x27;t happened)
+row   ..N-20    label = valid
+
+The last `horizon` rows can be *scored* by a live model but can never be
+*evaluated* or *trained on* -- their outcome does not exist yet.</code></pre></figure><h3><span class="step">8.3</span>The valid-sample formula</h3><figure class="code"><figcaption><span class="dot"></span>Giller&#x27;s boundary arithmetic</figcaption><pre><code class="language-plaintext">research dataset =
+      full historical data
+    - invalid beginning   (max feature lookback)
+    - invalid ending      (max label horizon)
+
+beginning = missing history
+end       = missing future
+middle    = the only valid research sample</code></pre></figure><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">def valid_window(index, max_lookback: int, max_horizon: int):
+    &quot;&quot;&quot;The only rows on which features AND labels are simultaneously defined.&quot;&quot;&quot;
+    n = len(index)
+    if max_lookback + max_horizon &gt;= n:
+        raise ValueError(
+            f&quot;Dataset too short: {n} rows, but warm-up ({max_lookback}) + &quot;
+            f&quot;label horizon ({max_horizon}) leave no valid sample. &quot;
+            f&quot;Get more history or shrink the windows.&quot;
+        )
+    return index[max_lookback : n - max_horizon]
+
+# max_lookback = the LARGEST window across every feature (incl. normalization
+# windows and EWMA effective burn-in); max_horizon = the LARGEST label horizon.
+valid = valid_window(df.index, max_lookback=200, max_horizon=20)
+df[&quot;in_valid_window&quot;] = df.index.isin(valid)</code></pre></figure><aside class="callout warn"><div class="callout-tag">Watch out</div><div class="callout-body"><strong>Boundaries multiply in nested computations.</strong> A z-scored SMA(200) with a 252-day normalization window needs 200&nbsp;+&nbsp;252 rows of warm-up, not max(200,&nbsp;252) &mdash; the z-score's window consumes rows of an input that is itself only valid after row 200. Compute boundary cost through the whole feature graph, or measure it empirically: the first row where every feature column is non-NaN when built with strict <code>min_periods</code>.</div></aside><div class="watchout"><div class="check-title">Things that actually go wrong</div><ul><li>Libraries that emit values before the window is full (default <code>min_periods=1</code>): the early &ldquo;SMA(200)&rdquo; is really an SMA(7) and behaves completely differently. Always set <code>min_periods=window</code>.</li><li>Interior long gaps re-create start boundaries after them: a 200-day feature is invalid again for 200 rows after a multi-month hole.</li><li>Backtests whose stellar early years sit entirely inside the warm-up zone.</li><li>Padding the start with synthetic history to &ldquo;rescue&rdquo; the boundary &mdash; the indicator then measures your padding.</li></ul></div><div class="checklist"><div class="check-title">Stage checklist</div><ul><li>Max feature lookback computed across the full feature graph (nesting included).</li><li>Max label horizon computed across all labels.</li><li>Valid window derived by formula; <code>in_valid_window</code> mask attached to the dataset.</li><li>Interior regime gaps re-checked for reborn start boundaries.</li><li>Training, validation and evaluation code all consume the mask.</li></ul></div>
+</section>
+<section class="chapter" id="ch9">
+  <div class="chapter-head">
+    <div class="kicker">Assemble &middot; Chapter 09</div>
+    <h2>Feature engineering validity checks</h2>
+    <div class="sub">Windows, lags, normalization and joins: the mechanical checks that keep conditioned data conditioned.</div>
+    <div class="big-n">09</div>
+  </div>
+  
+<p>Features are where a conditioned dataset most often gets silently re-corrupted. Before any feature enters
+the research set, it passes these validity checks &mdash; all of them mechanical, all of them automatable.</p>
+<h3><span class="step">9.1</span>The feature validity checklist, expanded</h3><div class="tablewrap"><table class=""><thead><tr><th>Check</th><th>Question it answers</th><th>Typical failure</th></tr></thead><tbody><tr><td>Lookback periods</td><td>Does the window fit inside available (valid) history?</td><td>SMA(200) computed on 150 rows of history via a permissive default</td></tr><tr><td>Rolling windows</td><td>Is <code>min_periods = window</code>, and is the window trailing, not centered?</td><td><code>center=True</code> smuggles the future into every point</td></tr><tr><td>Lag alignment</td><td>Does the feature at time t use only information with timestamps &le; t?</td><td>Joining a daily close onto an intraday grid at 09:30 &mdash; before the close exists</td></tr><tr><td>Normalization windows</td><td>Are scaling statistics rolling/expanding and past-only?</td><td>Full-sample z-score: test-period mean and std leak into year one</td></tr><tr><td>Volatility calculations</td><td>Convention pinned (window, estimator, annualization) and past-only?</td><td>&ldquo;Today's vol&rdquo; computed over a window ending tomorrow</td></tr><tr><td>Stationarity of features</td><td>Is the feature roughly stationary, or does its level drift so any model just learns the epoch?</td><td>Raw price as a feature; unscaled dollar volume across a decade</td></tr></tbody></table></div><h3><span class="step">9.2</span>Reference implementations</h3><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python"># Past-only rolling z-score: THE standard normalization for research features.
+def rolling_zscore(x: pd.Series, window: int = 252) -&gt; pd.Series:
+    mu = x.rolling(window, min_periods=window).mean()
+    sd = x.rolling(window, min_periods=window).std()
+    return (x - mu) / sd            # at time t: uses data up to and including t only
+
+# WRONG (for contrast) - uses future volatility inside today&#x27;s feature:
+#   vol_feature = r.rolling(20, center=True).std()      # window spans t-10..t+10
+# RIGHT:
+vol_feature = r.rolling(20, min_periods=20).std()       # window spans t-19..t</code></pre></figure><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python"># Mixed-frequency joins: as-of semantics, never exact-match or forward-looking.
+# fundamentals must carry the timestamp the value became KNOWN (filing/release),
+# not the period it refers to.
+merged = pd.merge_asof(
+    prices.sort_index(),
+    fundamentals.sort_values(&quot;available_at&quot;),
+    left_index=True, right_on=&quot;available_at&quot;,
+    direction=&quot;backward&quot;,            # latest value already public at time t
+)</code></pre></figure><aside class="callout principle"><div class="callout-tag">Principle</div><div class="callout-body"><strong>Only information available at time t.</strong> Every feature value must be computable, exactly as stored, by a process standing at time t with no access to anything later. This single sentence is the entire law of feature engineering; Chapter 10 is its enforcement.</div></aside><div class="watchout"><div class="check-title">Things that actually go wrong</div><ul><li>Report dates vs. availability dates: Q4 fundamentals &ldquo;dated&rdquo; Dec 31 were published in February. Join on availability.</li><li>Features built on the adjusted price series where the adjustment factor was computed with knowledge of <em>future</em> splits/dividends &mdash; use point-in-time adjustment (adjust as of t) for anything feeding a backtest.</li><li>Resampling with labels at the interval start while data accrues through the interval (the 09:00 bar containing 09:00&ndash;10:00 trades, used &ldquo;at 09:00&rdquo;).</li><li>Cross-sectional ranks/z-scores computed over the full panel including assets not yet listed at t.</li></ul></div><div class="checklist"><div class="check-title">Stage checklist</div><ul><li>Every feature's window, lag and data dependencies declared in a spec table.</li><li>All rolling ops trailing with strict <code>min_periods</code>; no centered windows anywhere.</li><li>All normalizations rolling/expanding, past-only.</li><li>All joins as-of on availability timestamps.</li><li>Feature stationarity eyeballed/tested; level-drifting features transformed.</li></ul></div>
+</section>
+<section class="chapter" id="ch10">
+  <div class="chapter-head">
+    <div class="kicker">Assemble &middot; Chapter 10</div>
+    <h2>Look-ahead bias prevention</h2>
+    <div class="sub">One rule, ruthlessly enforced: nothing at time t may depend on anything after t. With the tests that prove it.</div>
+    <div class="big-n">10</div>
+  </div>
+  
+<p>Look-ahead bias is the most expensive bug in quantitative finance: it produces beautiful backtests and
+dead strategies, and it is invisible until real money finds it. The rule is one line; this chapter is the
+enforcement machinery.</p>
+<aside class="callout danger"><div class="callout-tag">Hard rule</div><div class="callout-body"><strong>The model may only know what was knowable at prediction time.</strong> Wrong: the feature at day 10 uses data from days 11&ndash;20. Right: the feature at day 10 uses days 1&ndash;10. Everything else in this chapter is this rule applied to the sneaky cases.</div></aside><h3><span class="step">10.1</span>Where the future actually leaks in</h3><div class="tablewrap"><table class=""><thead><tr><th>Leak</th><th>Mechanism</th><th>Fix</th></tr></thead><tbody><tr><td>Full-sample statistics</td><td>Scaler/PCA/mean-std fitted on all data, applied to all data</td><td>Fit on training window only, or expanding/rolling past-only</td></tr><tr><td>Centered / future-touching windows</td><td><code>center=True</code>, negative shifts, &ldquo;tomorrow's&rdquo; column arithmetic</td><td>Trailing windows; audit every <code>shift</code> sign</td></tr><tr><td>Interpolated history in features</td><td>Linear interpolation used the right-hand anchor: the future</td><td>Interpolation only in the offline reconstruction layer, flagged; causal fills (state-space filtered, not smoothed) for anything live-like</td></tr><tr><td>Back-adjusted prices</td><td>Today's adjustment factors rewrite the entire past using future corporate actions</td><td>Point-in-time adjustment for research; raw + PIT factors stored</td></tr><tr><td>Restated / backfilled vendor data</td><td>History quietly improved after the fact</td><td>Point-in-time snapshots; record download dates</td></tr><tr><td>Label overlap into training</td><td>20-day labels mean adjacent samples share 19 days of future; a naive random split puts a label's future inside the training set</td><td>Purged splits with an embargo (below)</td></tr><tr><td>Selection leakage</td><td>Universe/hyperparameters chosen using full-period results, then &ldquo;validated&rdquo; on the same period</td><td>Freeze choices on early data; keep a true untouched holdout</td></tr></tbody></table></div><h3><span class="step">10.2</span>The scaler leak, concretely</h3><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python"># WRONG - statistics computed on the full history, including the test years:
+z_leaky = (x - x.mean()) / x.std()
+
+# RIGHT - past-only statistics at every point:
+z_safe  = (x - x.expanding(min_periods=252).mean()) / x.expanding(min_periods=252).std()
+
+# The leaky version is quietly rescaled by crises the model &quot;hasn&#x27;t seen yet&quot;.
+# The damage is small per point and lethal in aggregate model selection.</code></pre></figure><h3><span class="step">10.3</span>The point-in-time recomputation test (run this on everything)</h3><p>The one automated test that catches whole classes of leaks at once: recompute each feature
+using only data up to t, and compare with the stored value at t. If truncating the future changes the past,
+the feature is leaking.</p><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">import numpy as np
+
+def point_in_time_test(feature_fn, data: pd.DataFrame,
+                       n_checks: int = 25, min_t: int = 300, seed: int = 0):
+    &quot;&quot;&quot;feature_fn(data) -&gt; pd.Series. Verifies feature[t] is unchanged when
+    everything after t is deleted. Returns (passed, first_failure_timestamp).&quot;&quot;&quot;
+    rng  = np.random.default_rng(seed)
+    full = feature_fn(data)
+    ts   = rng.choice(np.arange(min_t, len(data) - 1), size=n_checks, replace=False)
+    for t in sorted(ts):
+        trunc = feature_fn(data.iloc[: t + 1])
+        a, b = full.iloc[t], trunc.iloc[-1]
+        if not (np.isnan(a) and np.isnan(b)) and not np.isclose(a, b, equal_nan=True):
+            return False, data.index[t]        # the future changed the past =&gt; leak
+    return True, None</code></pre></figure><h3><span class="step">10.4</span>Purged splits with embargo (leak-free evaluation)</h3><figure class="code"><figcaption><span class="dot"></span>python</figcaption><pre><code class="language-python">def purged_folds(n: int, n_folds: int = 5, horizon: int = 20, embargo: int = 5):
+    &quot;&quot;&quot;Time-series CV that removes training samples whose LABELS overlap the
+    test window (purge), plus a safety margin after it (embargo).&quot;&quot;&quot;
+    import numpy as np
+    folds = np.array_split(np.arange(n), n_folds)
+    for test in folds:
+        lo, hi = int(test[0]), int(test[-1])
+        train = np.array([i for i in range(n)
+                          if i + horizon &lt; lo            # label ends before test
+                          or i &gt; hi + embargo])          # starts after embargo
+        yield train, test</code></pre></figure><div class="watchout"><div class="check-title">Things that actually go wrong</div><ul><li>&ldquo;It's only the scaler&rdquo; / &ldquo;it's only interpolation&rdquo; &mdash; the most successful leaks are the ones that feel too small to matter.</li><li>A pipeline that passes the PIT test on prices but joins one auxiliary table (news counts, on-chain data) without as-of semantics.</li><li>Leakage through the target: any feature computed from a window that overlaps the label window is partially the label.</li><li>Backtest results that improve when you re-download the data: the vendor backfilled; your history got smarter than you were.</li></ul></div><div class="checklist"><div class="check-title">Stage checklist</div><ul><li>Every transform fitted past-only (scalers, PCA, encoders, vol estimates).</li><li>Point-in-time recomputation test wired into CI for every feature.</li><li>Evaluation uses purged + embargoed splits sized to the label horizon.</li><li>Adjustment factors and vendor snapshots handled point-in-time.</li><li>A final untouched holdout period exists and has been used exactly once.</li></ul></div>
+</section>
+<section class="chapter" id="ch11">
+  <div class="chapter-head">
+    <div class="kicker">Assemble &middot; Chapter 11</div>
+    <h2>Label generation & validation</h2>
+    <div class="sub">The one column allowed to contain the future — built so the future cannot leak anywhere else.</div>
+    <div class="big-n">11</div>
+  </div>
+  
+<p>Labels are the most dangerous column in the dataset, because they are the only column that is
+<em>allowed</em> to contain the future &mdash; and therefore the easiest place to smuggle the future into
+the features. Label generation happens after conditioning and boundary computation, and it gets its own
+validation pass.</p>
+<h3><span class="step">11.1</span>Forward returns done correctly</h3>
+<p>The forward <code>h</code>-bar return at time <code>t</code> uses prices at <code>t</code> and
+<code>t+h</code>, both of which must come from the <strong>conditioned</strong> price series. The last
+<code>h</code> rows cannot have a label. They stay <code>NaN</code> and are excluded from training &mdash;
+they are the end-boundary from Chapter&nbsp;8, now made concrete.</p>
+<figure class="code"><figcaption><span class="dot"></span>labels/forward_return.py</figcaption><pre><code class="language-python">import numpy as np, pandas as pd
+
+def forward_return(price: pd.Series, horizon: int, log: bool = True) -&gt; pd.Series:
+    &quot;&quot;&quot;h-bar forward return, aligned at decision time t. Tail is NaN by design.&quot;&quot;&quot;
+    if horizon &lt; 1:
+        raise ValueError(&quot;horizon must be &gt;= 1 bar&quot;)
+    fwd = price.shift(-horizon)
+    lab = np.log(fwd / price) if log else fwd / price - 1.0
+    return lab.rename(f&quot;fwd_ret_{horizon}&quot;)
+
+y = forward_return(df[&quot;close&quot;], horizon=20)
+assert y.iloc[-20:].isna().all(), &quot;end boundary must remain NaN&quot;</code></pre></figure><aside class="callout danger"><div class="callout-tag">Hard rule</div><div class="callout-body"><strong>Never impute a label.</strong> A label is the ground truth you are trying to predict. Filling a missing label with interpolation or a model manufactures the target &mdash; the model then learns your imputer, not the market. Rows with missing or boundary labels are <em>dropped from training</em>, never filled.</div></aside><h3><span class="step">11.2</span>Triple-barrier labels</h3>
+<p>Fixed-horizon returns treat a &plus;5% spike that mean-reverts and a slow &plus;5% grind identically,
+and they ignore path risk entirely. The triple-barrier method (L&oacute;pez de Prado) labels each event by
+which barrier the <em>path</em> touches first: an upper profit-taking barrier, a lower stop-loss barrier,
+or a timeout at the vertical barrier. Barriers scale with local volatility so the label means the same
+thing in quiet and violent regimes.</p>
+<figure class="code"><figcaption><span class="dot"></span>labels/triple_barrier.py</figcaption><pre><code class="language-python">import numpy as np, pandas as pd
+
+def triple_barrier(price: pd.Series, vol: pd.Series, horizon: int,
+                   up_mult: float = 2.0, dn_mult: float = 2.0) -&gt; pd.DataFrame:
+    &quot;&quot;&quot;Label +1 / -1 / 0 by first barrier touched within `horizon` bars.
+
+    vol      : per-bar volatility estimate computed PAST-ONLY (e.g. EWMA sigma).
+    horizon  : vertical barrier in bars. The last `horizon` rows get NO label.
+    Returns  : DataFrame [label, touch_idx, ret_at_touch]; boundary rows = NaN.
+    &quot;&quot;&quot;
+    n = len(price)
+    out = pd.DataFrame(index=price.index,
+                       columns=[&quot;label&quot;, &quot;touch_idx&quot;, &quot;ret_at_touch&quot;], dtype=float)
+    logp = np.log(price.to_numpy(dtype=float))
+    v = vol.to_numpy(dtype=float)
+    for i in range(n - horizon):                      # end boundary: stays NaN
+        if not np.isfinite(v[i]) or v[i] &lt;= 0:
+            continue                                   # vol not yet valid (start boundary)
+        up, dn = up_mult * v[i], -dn_mult * v[i]
+        path = logp[i + 1 : i + horizon + 1] - logp[i]
+        hit_up = np.argmax(path &gt;= up) if (path &gt;= up).any() else -1
+        hit_dn = np.argmax(path &lt;= dn) if (path &lt;= dn).any() else -1
+        if hit_up &gt;= 0 and (hit_dn &lt; 0 or hit_up &lt; hit_dn):
+            lab, j = 1.0, hit_up
+        elif hit_dn &gt;= 0:
+            lab, j = -1.0, hit_dn
+        else:
+            lab, j = 0.0, horizon - 1                  # timeout INSIDE the sample only
+        out.iloc[i] = [lab, i + 1 + j, path[j]]
+    return out</code></pre></figure><aside class="callout warn"><div class="callout-tag">Watch out</div><div class="callout-body"><strong>Timeout is only legal inside the sample.</strong> A label of 0 means &ldquo;neither barrier was touched within the horizon&rdquo;. Near the end of the data you cannot know that &mdash; the path is simply cut off. That is why the loop stops at <code>n&nbsp;&minus;&nbsp;horizon</code> and the tail stays <code>NaN</code> instead of being labeled a fake timeout.</div></aside><h3><span class="step">11.3</span>Overlap, weights and label audits</h3>
+<p>With a 20-bar horizon computed every bar, consecutive labels share up to 19 bars of the same path.
+They are not independent observations; naive IID training and naive t-statistics will both overstate
+your confidence. The standard treatments: sample every <code>k</code> bars, or keep all rows but weight
+each by its average uniqueness (inverse of how many other labels overlap it), and always evaluate with
+the purged, embargoed splits from Chapter&nbsp;10.</p>
+<figure class="code"><figcaption><span class="dot"></span>labels/label_audit.py</figcaption><pre><code class="language-python">def label_audit(y: pd.Series, horizon: int) -&gt; dict:
+    &quot;&quot;&quot;Run before training. Fails loudly instead of failing silently later.&quot;&quot;&quot;
+    n_missing_tail = int(y.iloc[-horizon:].isna().sum())
+    audit = {
+        &quot;n&quot;: int(y.notna().sum()),
+        &quot;tail_is_nan&quot;: n_missing_tail == horizon,
+        &quot;class_balance&quot;: y.value_counts(normalize=True).round(3).to_dict()
+                         if y.nunique() &lt; 10 else &quot;continuous&quot;,
+        &quot;overlap_factor&quot;: horizon,        # expected serial dependence of labels
+    }
+    if not audit[&quot;tail_is_nan&quot;]:
+        raise AssertionError(&quot;Labels exist inside the end boundary - look-ahead.&quot;)
+    return audit</code></pre></figure><div class="dodont"><div class="dd do"><div class="dd-tag">Do</div><strong>Recompute labels from the conditioned series</strong><p>Labels inherit every repair decision. If you re-impute or re-adjust prices, every label downstream is stale and must be regenerated.</p></div><div class="dd dont"><div class="dd-tag">Don&rsquo;t</div><strong>Reuse labels computed on raw prices</strong><p>A label built on an unrepaired bad tick is a label for an event that never happened. The model will hunt for a pattern that predicts a typo.</p></div></div><div class="watchout"><div class="check-title">Things that actually go wrong</div><ul><li>Vertical-barrier timeouts near the dataset edge silently labeled 0 instead of NaN &mdash; the classic way the end boundary leaks back in.</li><li>Volatility for barrier widths computed with centered or full-sample estimators &mdash; the label width itself becomes a look-ahead channel.</li><li>Class balance that changes drastically across regimes: a barrier multiple tuned in a quiet year produces almost all timeouts in a violent one.</li><li>Labels regenerated after a data re-download without regenerating features, or vice versa &mdash; version both together.</li><li>Meta-information leakage: dropping rows where the label is missing <em>before</em> a train/test split shifts the split point itself.</li></ul></div><div class="checklist"><div class="check-title">Stage checklist</div><ul><li>Labels computed on the conditioned, point-in-time-correct price series.</li><li>End boundary rows are NaN; assertion wired into the pipeline.</li><li>Barrier widths / horizons use past-only volatility.</li><li>Overlap handled: sampling, uniqueness weights, or both; splits purged + embargoed.</li><li>Label audit (counts, balance, tail check) stored with the dataset version.</li></ul></div>
+</section>
+<section class="chapter" id="ch12">
+  <div class="chapter-head">
+    <div class="kicker">Approve &middot; Chapter 12</div>
+    <h2>Regime & distribution checks</h2>
+    <div class="sub">Is it one market or several? Answer before the model answers it for you.</div>
+    <div class="big-n">12</div>
+  </div>
+  
+<p>The dataset is now clean, bounded and labeled. The last analytical question before approval:
+<strong>is it one market or several?</strong> Financial series switch regimes &mdash; calm to crisis,
+trending to mean-reverting, one liquidity structure to another. A model trained blindly across regimes
+learns a blend that describes none of them, and a validation split that straddles a regime break measures
+the break, not the model.</p>
+<h3><span class="step">12.1</span>Volatility regimes: the 80% solution</h3>
+<p>Most regime structure in most assets is volatility structure. A past-only EWMA volatility estimate cut
+into quantile buckets gives you an honest, leakage-free regime tag in ten lines &mdash; and it is the tag
+that most changes model behavior in practice.</p>
+<figure class="code"><figcaption><span class="dot"></span>regimes/vol_regimes.py</figcaption><pre><code class="language-python">import numpy as np, pandas as pd
+
+def vol_regimes(ret: pd.Series, span: int = 60, n_regimes: int = 3,
+                warmup: int = 120) -&gt; pd.Series:
+    &quot;&quot;&quot;Past-only EWMA vol, bucketed by EXPANDING quantiles (no full-sample peeking).&quot;&quot;&quot;
+    sigma = ret.ewm(span=span, min_periods=span).std()
+    def bucket(i):
+        hist = sigma.iloc[:i + 1].dropna()
+        if len(hist) &lt; warmup or not np.isfinite(sigma.iloc[i]):
+            return np.nan
+        qs = hist.quantile(np.linspace(0, 1, n_regimes + 1)[1:-1]).to_numpy()
+        return float(np.searchsorted(qs, sigma.iloc[i]))
+    return pd.Series([bucket(i) for i in range(len(sigma))],
+                     index=ret.index, name=&quot;vol_regime&quot;)</code></pre></figure><aside class="callout warn"><div class="callout-tag">Watch out</div><div class="callout-body"><strong>Full-sample quantiles are look-ahead.</strong> Cutting volatility into terciles using quantiles of the <em>whole</em> history tags 2020 using knowledge of 2024. Use expanding (or rolling) quantiles as above, and accept that early rows carry no regime tag &mdash; that is just another start boundary.</div></aside><h3><span class="step">12.2</span>Change-points: where did the series break?</h3>
+<p>Regime tags answer &ldquo;what state is bar <code>t</code> in?&rdquo;. Change-point detection answers
+&ldquo;where does the data-generating process shift?&rdquo; &mdash; exchange migrations, tick-size changes,
+contract redesigns, the day a stablecoin depegged. A simple binary segmentation on the mean of
+<code>log(r&sup2;)</code> (a variance proxy) finds the big structural breaks without any heavy dependency.</p>
+<figure class="code"><figcaption><span class="dot"></span>regimes/change_points.py</figcaption><pre><code class="language-python">import numpy as np
+
+def change_points(ret, max_breaks: int = 5, min_seg: int = 60, z_thresh: float = 6.0):
+    &quot;&quot;&quot;Binary segmentation on log(r^2): recursively split where the two-sided
+    mean-shift z-statistic is largest. Returns sorted break indices.&quot;&quot;&quot;
+    x = np.log(np.square(np.asarray(ret, dtype=float)) + 1e-12)
+    breaks = []
+    def split(lo, hi):
+        if hi - lo &lt; 2 * min_seg or len(breaks) &gt;= max_breaks:
+            return
+        seg = x[lo:hi]; n = len(seg); best_z, best_k = 0.0, None
+        for k in range(min_seg, n - min_seg):
+            a, b = seg[:k], seg[k:]
+            s = np.sqrt(a.var() / len(a) + b.var() / len(b)) + 1e-12
+            z = abs(a.mean() - b.mean()) / s
+            if z &gt; best_z: best_z, best_k = z, k
+        if best_k is not None and best_z &gt;= z_thresh:
+            breaks.append(lo + best_k)
+            split(lo, lo + best_k); split(lo + best_k, hi)
+    split(0, len(x))
+    return sorted(breaks)</code></pre></figure><h3><span class="step">12.3</span>Distribution drift between train and test</h3>
+<p>Before approving any split, compare the distributions the model will see. A two-sample
+Kolmogorov&ndash;Smirnov test on returns (and on each feature) between the training window and the test
+window tells you whether &ldquo;out-of-sample&rdquo; secretly means &ldquo;out-of-distribution&rdquo;.
+Drift is not a reason to abort &mdash; it is a reason to <em>know</em>, to report, and possibly to train
+regime-aware.</p>
+<figure class="code"><figcaption><span class="dot"></span>regimes/drift_report.py</figcaption><pre><code class="language-python">from scipy import stats
+
+def drift_report(train: pd.DataFrame, test: pd.DataFrame, cols) -&gt; pd.DataFrame:
+    rows = []
+    for c in cols:
+        a, b = train[c].dropna(), test[c].dropna()
+        if len(a) &lt; 30 or len(b) &lt; 30:
+            rows.append((c, np.nan, np.nan, &quot;insufficient data&quot;)); continue
+        ks, p = stats.ks_2samp(a, b)
+        rows.append((c, round(float(ks), 4), round(float(p), 5),
+                     &quot;DRIFT&quot; if p &lt; 0.01 else &quot;ok&quot;))
+    return pd.DataFrame(rows, columns=[&quot;column&quot;, &quot;ks_stat&quot;, &quot;p_value&quot;, &quot;verdict&quot;])</code></pre></figure><aside class="callout note"><div class="callout-tag">Field note</div><div class="callout-body"><strong>HMMs and clustering: optional, powerful, easy to abuse.</strong> Gaussian-mixture or hidden-Markov regime models (e.g. <code>hmmlearn</code>) recover richer states &mdash; trending vs choppy, calm vs stressed &mdash; but they are fitted on the full sample by default, which makes their state path look-ahead. If you use them for <em>features</em>, fit them expanding/rolling. Fitting once on all data is acceptable only for <em>reporting and split design</em>, never as a model input.</div></aside><div class="dodont"><div class="dd do"><div class="dd-tag">Do</div><strong>Design splits around the regime map</strong><p>Report per-regime sample counts; make sure the test period is not a single regime the training set has never seen &mdash; or if it is, say so on the approval form.</p></div><div class="dd dont"><div class="dd-tag">Don&rsquo;t</div><strong>Train one model across an obvious structural break</strong><p>If the contract, tick size, venue or monetary policy changed the process, everything before the break may be a different asset wearing the same ticker.</p></div></div><div class="watchout"><div class="check-title">Things that actually go wrong</div><ul><li>Regime tags produced by a full-sample HMM quietly used as a model feature &mdash; a look-ahead channel with a scientific costume.</li><li>A test set that is 100% one regime (e.g. only the 2021 bull run) reported as &ldquo;out-of-sample performance&rdquo;.</li><li>Change-points caused by the <em>data plumbing</em> (vendor switch, session change) misread as market regime shifts &mdash; check the audit log first.</li><li>Stationarity checked once on the full series, never per segment: a series can pass ADF globally and still be three different processes glued together.</li><li>Drift dismissed because &ldquo;returns are always fat-tailed&rdquo; &mdash; the KS test is comparing shapes, not tails only.</li></ul></div><div class="checklist"><div class="check-title">Stage checklist</div><ul><li>Past-only volatility regime tag attached to every bar (NaN in warm-up).</li><li>Structural change-points detected, cross-checked against the audit log and vendor history.</li><li>Train/test drift report generated for returns and all features.</li><li>Splits reviewed against the regime map; single-regime tests flagged on the approval form.</li><li>Any regime model used as a feature is fitted strictly past-only.</li></ul></div>
+</section>
+<section class="chapter" id="ch13">
+  <div class="chapter-head">
+    <div class="kicker">Approve &middot; Chapter 13</div>
+    <h2>The complete conditioning pipeline</h2>
+    <div class="sub">Thirteen stages, one order, one sign-off. From raw vendor file to research-ready dataset.</div>
+    <div class="big-n">13</div>
+  </div>
+  
+<p>Everything in this handbook compresses into one ordered pipeline. Run it top to bottom for every new
+dataset, every re-download, every vendor change. The order is not decorative: each stage consumes the
+outputs and the audit trail of the stage before it, and several stages are meaningless if run early
+(you cannot classify gaps you have not profiled; you cannot compute boundaries for features you have not
+specified; you cannot approve what you have not logged).</p>
+<div class="pipeline"><div class="pipe-raw">Raw vendor file &darr;</div><div class="pipe-step"><div class="pipe-n">01</div><div class="pipe-body"><strong>Raw data validation</strong><span>Schema, timestamps &amp; timezone, duplicates, calendar completeness, units, identifiers, OHLCV consistency, corporate actions (Ch. 1)</span></div></div><div class="pipe-step"><div class="pipe-n">02</div><div class="pipe-body"><strong>Structural analysis</strong><span>Returns, fat tails, volatility clustering, autocorrelation &mdash; know the animal (Ch. 2)</span></div></div><div class="pipe-step"><div class="pipe-n">03</div><div class="pipe-body"><strong>Missing-data profiling</strong><span>Gap table: every gap located, measured, shaped (Ch. 3)</span></div></div><div class="pipe-step"><div class="pipe-n">04</div><div class="pipe-body"><strong>Gap classification</strong><span>Expected vs unexpected; MCAR / MAR / MNAR; decision table (Ch. 4)</span></div></div><div class="pipe-step"><div class="pipe-n">05</div><div class="pipe-body"><strong>Outlier &amp; contaminant triage</strong><span>Evidence-based verdicts: real extreme vs data error (Ch. 7)</span></div></div><div class="pipe-step"><div class="pipe-n">06</div><div class="pipe-body"><strong>Repair &amp; imputation</strong><span>Method matched to gap class; uncertainty attached; raw kept immutable (Ch. 5&ndash;6)</span></div></div><div class="pipe-step"><div class="pipe-n">07</div><div class="pipe-body"><strong>Re-validation</strong><span>Re-run structure report on repaired series; confirm distributions not distorted (Ch. 2, 5)</span></div></div><div class="pipe-step"><div class="pipe-n">08</div><div class="pipe-body"><strong>Temporal boundary computation</strong><span>Valid research window from max lookback &amp; max horizon (Ch. 8)</span></div></div><div class="pipe-step"><div class="pipe-n">09</div><div class="pipe-body"><strong>Feature validity checks</strong><span>Past-only construction, as-of joins, PIT recomputation test (Ch. 9&ndash;10)</span></div></div><div class="pipe-step"><div class="pipe-n">10</div><div class="pipe-body"><strong>Label generation &amp; validation</strong><span>Forward returns / triple barrier; NaN tails; overlap handling (Ch. 11)</span></div></div><div class="pipe-step"><div class="pipe-n">11</div><div class="pipe-body"><strong>Regime &amp; distribution checks</strong><span>Regime map, change-points, train/test drift (Ch. 12)</span></div></div><div class="pipe-step"><div class="pipe-n">12</div><div class="pipe-body"><strong>Leakage tests &amp; split design</strong><span>Point-in-time tests green; purged, embargoed splits (Ch. 10)</span></div></div><div class="pipe-step gate"><div class="pipe-n">13</div><div class="pipe-body"><strong>Dataset approval</strong><span>Sign-off form below; version stamped; only then may ML begin</span></div></div></div><aside class="callout principle"><div class="callout-tag">Principle</div><div class="callout-body"><strong>The pipeline is the deliverable.</strong> A model result is only as credible as the conditioning pipeline that produced its dataset. Desks review the pipeline artifacts &mdash; gap table, triage log, boundary mask, PIT test results, drift report &mdash; the way software teams review code. If the artifacts do not exist, the result does not exist.</div></aside><h3><span class="step">13.1</span>The dataset approval form</h3>
+<p>Approval is a written act, not a feeling. The form below is the concatenation of every stage checklist
+in this handbook; a dataset ships to research only when every line is checked, and the completed form is
+stored next to the dataset version it approves.</p>
+<div class="checklist"><div class="check-title">Dataset approval — sign-off</div><ul><li>Ingestion: schema, timezone (UTC), duplicates, calendar completeness, units, identifiers, OHLCV consistency all validated; corporate actions handled with raw + adjusted kept.</li><li>Structure report generated on raw returns and archived.</li><li>Gap table complete; every gap classified before any repair.</li><li>Every outlier verdict (real / contaminant / uncertain) logged with evidence.</li><li>All repairs logged with method, parameters and uncertainty; raw layer immutable; imputation flags present.</li><li>Post-repair structure report shows no distributional distortion beyond intent.</li><li>Valid research window computed from all lookbacks and horizons; boundary rows masked.</li><li>All features pass the point-in-time recomputation test.</li><li>Labels: NaN tails verified, overlap policy chosen, audit stored.</li><li>Regime map and drift report reviewed; split design accounts for them.</li><li>Cross-validation is purged and embargoed; final holdout untouched.</li><li>Dataset version, code version, and this signed form stored together.</li></ul></div><h3><span class="step">13.2</span>Reproducibility: the part everyone regrets skipping</h3>
+<p>Three habits make the whole pipeline auditable. <strong>Immutable raw:</strong> the vendor file is
+written once, checksummed, and never edited; all conditioning produces new versioned artifacts.
+<strong>Deterministic runs:</strong> the pipeline is a script with pinned dependencies and a seed, not a
+notebook of manual edits; re-running it on the same raw file yields byte-identical output.
+<strong>An audit log that answers &ldquo;why is this value here?&rdquo;</strong> for every repaired cell:
+timestamp, rule, method, parameters, before/after. When a backtest looks too good eighteen months from
+now, this log is how you find out what happened in ninety seconds instead of ninety hours.</p>
+<h3><span class="step">13.3</span>Running it end-to-end with ResearchReadyPy</h3>
+<p>The companion package implements this handbook 1:1 &mdash; same stages, same order, same vocabulary.
+One call runs the full conditioning pipeline on any reasonable time-series input and renders the visual
+conditioning report with the approval checklist:</p>
+<figure class="code"><figcaption><span class="dot"></span>researchreadypy — full pipeline</figcaption><pre><code class="language-python">import researchreadypy as rr
+
+result = rr.run(
+    df,                          # DataFrame / Series / ndarray / CSV path / dict ...
+    price_col=&quot;close&quot;,
+    feature_lookback=200,        # longest lookback you intend to use
+    label_horizon=20,            # longest forward horizon you intend to use
+    report_path=&quot;conditioning_report.html&quot;,
+)
+
+print(result.summary())          # verdicts for all 12 stages
+clean = result.conditioned       # conditioned DataFrame + flags + masks
+gaps  = result.gap_table         # every gap, classified
+log   = result.audit_log         # every repair, justified</code></pre></figure>
+<p>And the philosophy, one last time, because it is the sentence that keeps the other twelve chapters
+honest:</p>
+<aside class="callout principle"><div class="callout-tag">Principle</div><div class="callout-body"><strong>Condition the data so that it remains economically meaningful.</strong> Do not clean financial data the way you would clean generic tabular data. The goal is <strong>financial validity</strong> + <strong>statistical correctness</strong> + <strong>preservation of alpha information</strong> &mdash; achieving all three at once is what this pipeline is for.</div></aside>
+</section>
+<section class="chapter" id="appendix">
+  <div class="chapter-head">
+    <div class="kicker">Approve &middot; Chapter A</div>
+    <h2>Appendix: the master checklist</h2>
+    <div class="sub">Everything above, compressed to one page and a short shelf of references.</div>
+    <div class="big-n">A</div>
+  </div>
+  
+<p>The ten-minute version to pin above the desk. If any line fails, stop and go to the referenced chapter
+&mdash; the full pipeline exists precisely so that this list can stay short.</p>
+<div class="checklist"><div class="check-title">Master pre-flight checklist</div><ul><li>Do I know the source, the timezone, and the timestamp convention? (Ch. 1)</li><li>Are duplicates, calendar gaps and unit jumps profiled &mdash; not assumed absent? (Ch. 1, 3)</li><li>Raw and adjusted price series both present (equities/ETFs), or explicitly n/a (crypto/FX)? (Ch. 1)</li><li>Has anyone actually looked at the return distribution and ACFs? (Ch. 2)</li><li>Is every gap classified before anything is filled? (Ch. 3&ndash;4)</li><li>Is every extreme value triaged with evidence, not deleted by threshold? (Ch. 7)</li><li>Does every repaired cell carry a flag, a method and an uncertainty? (Ch. 5&ndash;6)</li><li>Is the valid research window computed and enforced at both ends? (Ch. 8)</li><li>Does every feature pass the point-in-time recomputation test? (Ch. 9&ndash;10)</li><li>Are label tails NaN and splits purged + embargoed? (Ch. 10&ndash;11)</li><li>Have regimes and train/test drift been examined and reported? (Ch. 12)</li><li>Is the approval form signed and stored with the dataset version? (Ch. 13)</li></ul></div><h3>Selected references &amp; further reading</h3>
+<p class="ref">
+D.&nbsp;P.&nbsp;Palomar et&nbsp;al. &mdash; heavy-tailed state-space imputation for financial time series
+(the <code>imputeFin</code> line of work): random-walk / AR(1) models with Student-t innovations fitted by
+stochastic EM, purpose-built for the gaps-with-fat-tails reality of market data (Ch.&nbsp;5).<br><br>
+G.&nbsp;L.&nbsp;Giller &mdash; on temporal boundaries and the honest accounting of usable samples: every
+transformation with a lookback or horizon shrinks the valid window, and the shrinkage compounds (Ch.&nbsp;8).<br><br>
+M.&nbsp;L&oacute;pez de Prado, <em>Advances in Financial Machine Learning</em> &mdash; triple-barrier
+labeling, sample uniqueness, purged K-fold with embargo (Ch.&nbsp;10&ndash;11).<br><br>
+Vendor documentation for your specific data feed &mdash; unglamorous, and the single highest-value
+document in this entire reference list (Ch.&nbsp;1).</p>
+
+</section>
+    <div class="footer">RESEARCH-READY DATA HANDBOOK &middot; companion package: ResearchReadyPy &middot; raw stays immutable &middot; every repair is logged</div>
+  </main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+  var links = Array.from(document.querySelectorAll('.nav a'));
+  var map = {};
+  links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+  var obs = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if(e.isIntersecting){
+        links.forEach(function(a){a.classList.remove('active')});
+        var a = map[e.target.id]; if(a) a.classList.add('active');
+      }
+    });
+  }, {rootMargin:'-20% 0px -70% 0px'});
+  document.querySelectorAll('.chapter').forEach(function(s){obs.observe(s)});
+  if(window.hljs){ hljs.highlightAll(); }
+});
+</script>
+</body>
+</html>
